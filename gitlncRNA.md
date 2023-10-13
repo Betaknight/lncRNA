@@ -3,36 +3,7 @@ lncRNA
 Bruno
 2023-10-12
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax
-for authoring HTML, PDF, and MS Word documents. For more details on
-using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that
-includes both content as well as the output of any embedded R code
-chunks within the document. You can embed an R code chunk like this:
-
-``` r
-summary(cars)
-```
-
-    ##      speed           dist       
-    ##  Min.   : 4.0   Min.   :  2.00  
-    ##  1st Qu.:12.0   1st Qu.: 26.00  
-    ##  Median :15.0   Median : 36.00  
-    ##  Mean   :15.4   Mean   : 42.98  
-    ##  3rd Qu.:19.0   3rd Qu.: 56.00  
-    ##  Max.   :25.0   Max.   :120.00
-
-## Including Plots
-
-You can also embed plots, for example:
-
-![](gitlncRNA_files/figure-gfm/pressure-1.png)<!-- -->
-
-Note that the `echo = FALSE` parameter was added to the code chunk to
-prevent printing of the R code that generated the plot.
+Librerias
 
 ``` r
 library(dplyr)
@@ -134,12 +105,24 @@ source("scriptlncrna.R")
     ## 
     ## ℹ Use `spec()` to retrieve the full column specification for this data.
     ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+    ## Rows: 709054 Columns: 22
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: "\t"
+    ## chr (21): swiss_prot_name, gene_id, transcript_id, sprot_Top_BLASTX_hit, pro...
+    ## dbl  (1): length
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
     ## 
     ## ── Column specification ────────────────────────────────────────────────────────
     ## cols(
     ##   X1 = col_character(),
     ##   X2 = col_double()
     ## )
+
+Union de las columnas: plus, minus, total strands y diff ratio de AMP e
+IRR con query y target Los histogramas son respecto al dif-ratio de la
+suma de amp y irr para querry y target
 
 ``` r
 ggplot(data = ampirr, aes(x = diff_ratio_ampirr.qer)) + geom_histogram() + labs(x = "diff ratio amp + irr", title = "Query") + theme(plot.title = element_text(hjust = 0.5)) + xlim(-1,1)
@@ -152,3 +135,30 @@ ggplot(data = ampirr, aes(x = diff_ratio_ampirr.qer)) + geom_histogram() + labs(
     ## Warning: Removed 2 rows containing missing values (`geom_bar()`).
 
 ![](gitlncRNA_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
+
+``` r
+ggplot(data = ampirr, aes(x = diff_ratio_ampirr.target)) + geom_histogram() + labs(x = "diff ratio amp + irr", title = "Target") + theme(plot.title = element_text(hjust = 0.5)) + xlim(-1,1)
+```
+
+    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+    ## Warning: Removed 8510 rows containing non-finite values (`stat_bin()`).
+    ## Removed 2 rows containing missing values (`geom_bar()`).
+
+![](gitlncRNA_files/figure-gfm/unnamed-chunk-2-2.png)<!-- -->
+
+Expresion diferencial de
+
+``` r
+#amp
+filter(qer_sub_diff, (log2FoldChange.qer.amp * log2FoldChange.sub.amp) < 0) %>% ggplot(aes(x = log2FoldChange.sub.amp, y = log2FoldChange.qer.amp)) + geom_point() + labs(title = "Amp") + theme(plot.title = element_text(hjust = 0.5))
+```
+
+![](gitlncRNA_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+
+``` r
+#irr
+filter(qer_sub_diff, (log2FoldChange.qer.irr * log2FoldChange.sub.irr) < 0) %>% ggplot(aes(x = log2FoldChange.sub.irr, y = log2FoldChange.qer.irr)) + geom_point() + labs(title = "Irr") + theme(plot.title = element_text(hjust = 0.5))
+```
+
+![](gitlncRNA_files/figure-gfm/unnamed-chunk-3-2.png)<!-- -->
