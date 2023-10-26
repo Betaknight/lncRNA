@@ -57,3 +57,27 @@ filter(qer_sub_diff, (log2FoldChange.qer.irr * log2FoldChange.sub.irr) < 0) %>% 
 ```
 
 ![](gitlncRNA_files/figure-gfm/unnamed-chunk-3-2.png)<!-- -->
+
+``` r
+prot %>% group_by(qseqid) %>% summarise(No = n(), total = unique(total_length)) %>% ggplot(aes(x = No, y = total)) + geom_point() + labs(title = "Grafica") + theme(plot.title = element_text(hjust = 0.5))
+```
+
+![](gitlncRNA_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+
+``` r
+prot %>% group_by(qseqid) %>% summarise(No = n(), total = unique(total_length)) %>% ggplot(aes(x = total, y = No)) + geom_point() + labs(title = "Grafica") + theme(plot.title = element_text(hjust = 0.5))
+```
+
+![](gitlncRNA_files/figure-gfm/unnamed-chunk-4-2.png)<!-- -->
+
+``` r
+prot %>% group_by(qseqid) %>% summarise(No = n(),suma = sum(length), total = unique(total_length)) %>% ggplot(aes(x = total, y = suma)) + geom_point() + labs(title = "Grafica") + theme(plot.title = element_text(hjust = 0.5))
+```
+
+![](gitlncRNA_files/figure-gfm/unnamed-chunk-4-3.png)<!-- -->
+
+``` r
+prot %>% group_by(qseqid) %>% summarise(No = n(),mean = mean(length), total = unique(total_length)) %>% ggplot(aes(x = total, y = mean)) + geom_point() + labs(title = "Grafica") + theme(plot.title = element_text(hjust = 0.5))
+```
+
+![](gitlncRNA_files/figure-gfm/unnamed-chunk-4-4.png)<!-- -->
