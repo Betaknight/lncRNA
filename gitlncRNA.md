@@ -56,7 +56,7 @@ filter(qer_sub_diff, (log2FoldChange.qer.amp * log2FoldChange.sub.amp) < 0) %>% 
 filter(qer_sub_diff, (log2FoldChange.qer.irr * log2FoldChange.sub.irr) < 0) %>% ggplot(aes(x = log2FoldChange.sub.irr, y = log2FoldChange.qer.irr)) + geom_point() + labs(title = "Irr") + theme(plot.title = element_text(hjust = 0.5))
 ```
 
-![](gitlncRNA_files/figure-gfm/unnamed-chunk-3-2.png)<!-- -->
+![](gitlncRNA_files/figure-gfm/unnamed-chunk-3-2.png)<!-- --> Gráficas
 
 ``` r
 prot %>% group_by(qseqid) %>% summarise(No = n(), total = unique(total_length)) %>% ggplot(aes(x = No, y = total)) + geom_point() + labs(title = "Grafica") + theme(plot.title = element_text(hjust = 0.5))
