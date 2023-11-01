@@ -73,7 +73,7 @@ select(ampirr, sseqid, total_length.target) %>% unique() %>%
 
 filtrados <- filter(ampirr, length > 300)
 
-#experimento
+#Joining the Antisense blast table with the 
 qer_sub_diff <- left_join(select(filtrados, qseqid, sseqid),select(results_full_amp_degs,transcript_id, log2FoldChange, padj), by = join_by("qseqid" == "transcript_id")) %>% 
 left_join(select(results_full_amp_degs,transcript_id, log2FoldChange, padj), by =join_by("sseqid" == "transcript_id"), suffix = c(".qer.amp", ".sub.amp")) %>% 
 left_join(select(results_full_irr_degs, transcript_id, log2FoldChange, padj), by = join_by("qseqid" == "transcript_id")) %>% 
