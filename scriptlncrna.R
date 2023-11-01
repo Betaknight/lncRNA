@@ -1,36 +1,43 @@
 library(readr)
-amputated_df_crbb_annotated_df_len_crbb_trin <- read_csv("C:/Users/cbzom/Downloads/amputated_df_crbb_annotated - df_len_crbb_trin.csv", na = c("NA",".",""))
-library(readr)
-irradiated_df_crbb_annotation_df_len_crbb_trin <- read_csv("C:/Users/cbzom/Downloads/irradiated_df_crbb_annotation - df_len_crbb_trin.csv", na = c("NA","","."))
-library(readr)
-tablaguia <- read_csv("~/Practica/Practicarna/tablaguia.csv")
-library(readr)
-swissProt_self_blastAStranscripts <- read_delim(paste0(directorio, "swissProt_self_blastAStranscripts.csv"), 
-                                                delim = "\t", escape_double = FALSE, 
-                                                col_names = FALSE, trim_ws = TRUE)
-View(swissProt_self_blastAStranscripts)
-colnames(swissProt_self_blastAStranscripts) <- c("qseqid", "sseqid", "length", "mismatch", "pident", "frames", "qstart", "qend", "sstart", "send", "evalue", "bitscore")
-
-library(readr)
-ss_analysisAMP <- read_delim("ss_analysisAMP.dat", 
-                             delim = "\t", escape_double = FALSE, 
-                             trim_ws = TRUE)
-View(ss_analysisAMP)
-library(readr)
-ss_analysisIrr <- read_delim("ss_analysisIrr.dat", 
-                             delim = "\t", escape_double = FALSE, 
-                             trim_ws = TRUE)
-View(ss_analysisIrr)
-
-
+#amputated_df_crbb_annotated_df_len_crbb_trin <- read_csv("C:/Users/cbzom/Downloads/amputated_df_crbb_annotated - df_len_crbb_trin.csv", na = c("NA",".",""))
+#irradiated_df_crbb_annotation_df_len_crbb_trin <- read_csv("C:/Users/cbzom/Downloads/irradiated_df_crbb_annotation - df_len_crbb_trin.csv", na = c("NA","","."))
 library(dplyr)
 library(tidyr)
 library(forcats)
 library(stringr)
 library(ggplot2)
 library(here)
-
 directorio <- here()
+results_full_amp_degs <- read_csv(paste0(directorio,"/data/results_full_amp_degs.csv"), 
+                                  col_types = cols(...8 = col_skip()))
+
+results_full_irr_degs <- read_csv(paste0(directorio,"/data/results_full_irr_degs.csv"), 
+                                  col_types = cols(...8 = col_skip()))
+
+#cargar resutados de expresion diferencial
+colnames(results_full_amp_degs)[1] <- "transcript_id"
+colnames(results_full_irr_degs)[1] <- "transcript_id"
+
+#Cargar blast results transcritos de antisentidos
+swissProt_self_blastAStranscripts <- read_delim(paste0(directorio, "/data/swissProt_self_blastAStranscripts.csv"), 
+                                                delim = "\t", escape_double = FALSE, 
+                                                col_names = FALSE, trim_ws = TRUE)
+
+colnames(swissProt_self_blastAStranscripts) <- c("qseqid", "sseqid", "length", "mismatch", "pident", "frames", "qstart", "qend", "sstart", "send", "evalue", "bitscore")
+
+ss_analysisAMP <- read_delim("ss_analysisAMP.dat", 
+                             delim = "\t", escape_double = FALSE, 
+                             trim_ws = TRUE)
+ss_analysisIrr <- read_delim("ss_analysisIrr.dat", 
+                             delim = "\t", escape_double = FALSE, 
+                             trim_ws = TRUE)
+View(ss_analysisIrr)
+
+
+
+
+
+
 
 colnames(ss_analysisAMP)[1] <- "transcript_id"
 colnames(ss_analysisIrr)[1] <- "transcript_id"
@@ -62,10 +69,6 @@ select(ampirr, qseqid, total_length.qer) %>% unique() %>% ggplot(aes(x = total_l
 # Filtrado de matches mayores a 300
 
 filtrados <- filter(ampirr, length > 300)
-
-#cargar resutados de expresion diferencial
-colnames(results_full_amp_degs)[1] <- "transcript_id"
-colnames(results_full_irr_degs)[1] <- "transcript_id"
 
 #experimento
 qer_sub_diff <- left_join(select(filtrados, qseqid, sseqid),select(results_full_amp_degs,transcript_id, log2FoldChange, padj), by = join_by("qseqid" == "transcript_id")) %>% 
