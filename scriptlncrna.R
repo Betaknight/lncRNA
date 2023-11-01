@@ -25,18 +25,13 @@ swissProt_self_blastAStranscripts <- read_delim(paste0(directorio, "/data/swissP
 
 colnames(swissProt_self_blastAStranscripts) <- c("qseqid", "sseqid", "length", "mismatch", "pident", "frames", "qstart", "qend", "sstart", "send", "evalue", "bitscore")
 
-ss_analysisAMP <- read_delim("ss_analysisAMP.dat", 
+ss_analysisAMP <- read_delim(paste0(directorio,"/data/ss_analysisAMP.dat"), 
                              delim = "\t", escape_double = FALSE, 
                              trim_ws = TRUE)
-ss_analysisIrr <- read_delim("ss_analysisIrr.dat", 
+ss_analysisIrr <- read_delim(paste0(directorio,"/data/ss_analysisIrr.dat"), 
                              delim = "\t", escape_double = FALSE, 
                              trim_ws = TRUE)
 View(ss_analysisIrr)
-
-
-
-
-
 
 
 colnames(ss_analysisAMP)[1] <- "transcript_id"
@@ -51,12 +46,15 @@ ampirr <- left_join(ampirr, ss_analysisAMP, by = join_by("sseqid" == "transcript
 ampirr <- left_join(ampirr, ss_analysisIrr, by = join_by("sseqid" == "transcript_id"), suffix = c(".amp.target", ".irr.target"))
 ampirr <- ampirr %>% mutate(diff_ratio_ampirr.target = ((plus_strand_1stReads.amp.target + plus_strand_1stReads.irr.target) - (minus_strand_1stReads.amp.target + minus_strand_1stReads.irr.target))/(total_reads.amp.target + total_reads.irr.target))
 
-ggplot(data = ampirr, aes(x = diff_ratio_ampirr.qer)) + geom_histogram() + labs(x = "diff ratio amp + irr", title = "Query") + theme(plot.title = element_text(hjust = 0.5)) + xlim(-1,1)
-ggplot(data = ampirr, aes(x = diff_ratio_ampirr.target)) + geom_histogram() + labs(x = "diff ratio amp + irr", title = "Target") + theme(plot.title = element_text(hjust = 0.5)) + xlim(-1,1)
+#Histogram of the ratio of reads on the positive and the negative strand (ideal is -1)
+ggplot(data = ampirr, aes(x = diff_ratio_ampirr.qer)) + geom_histogram() + 
+  labs(x = "Difference ratio of reads", title = "Query mRNAs show the expected predominance of minus strand reads", subtitle = "Difference ratio taking into account both experiments", y = "Number of transcripts") + theme(plot.title = element_text(hjust = 0.5)) + xlim(-1,1)
+ggplot(data = ampirr, aes(x = diff_ratio_ampirr.target)) + geom_histogram() + 
+  labs(x = "Difference ratio of reads", title = "Antisense mRNAs show an even distribution of read strand", subtitle = "Difference ratio taking into account both experiments", y = "Number of transcripts") + theme(plot.title = element_text(hjust = 0.5)) + xlim(-1,1)
 
 
-library(readr)
-longitudes <- read_table("longitudes.txt", 
+#length of mRNAs
+longitudes <- read_table(paste0(directorio,"/data/longitudes.txt"), 
                          col_names = FALSE)
 View(longitudes)
 
@@ -64,7 +62,12 @@ colnames(longitudes) <- c("transcript_id", "total_length")
 ampirr <- inner_join(ampirr, longitudes, by = join_by("qseqid" == "transcript_id"))
 ampirr <- inner_join(ampirr, longitudes, by = join_by("sseqid" == "transcript_id"), suffix = c(".qer", ".target"))
 
-select(ampirr, qseqid, total_length.qer) %>% unique() %>% ggplot(aes(x = total_length.qer)) + geom_histogram(binwidth = 200) + scale_x_continuous(n.breaks = 10)
+#length distribution of mRNAs
+select(ampirr, qseqid, total_length.qer) %>% unique() %>%
+  ggplot(aes(x = total_length.qer)) + geom_histogram(binwidth = 200) + scale_x_continuous(n.breaks = 10)
+
+select(ampirr, sseqid, total_length.target) %>% unique() %>%
+  ggplot(aes(x = total_length.target)) + geom_histogram(binwidth = 200) + scale_x_continuous(n.breaks = 10)
 
 # Filtrado de matches mayores a 300
 
