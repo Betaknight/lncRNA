@@ -8,6 +8,8 @@ library(stringr)
 library(ggplot2)
 library(here)
 directorio <- here()
+dlaevis_assembly_uniprt <- read_table(paste0(directorio,"data/dlaevis_assembly_uniprt.csv"))
+                                      
 results_full_amp_degs <- read_csv(paste0(directorio,"/data/results_full_amp_degs.csv"), 
                                   col_types = cols(...8 = col_skip()))
 
@@ -79,8 +81,10 @@ left_join(select(results_full_amp_degs,transcript_id, log2FoldChange, padj), by 
 left_join(select(results_full_irr_degs, transcript_id, log2FoldChange, padj), by = join_by("qseqid" == "transcript_id")) %>% 
 left_join(select(results_full_irr_degs, transcript_id, log2FoldChange, padj), by = join_by("sseqid" == "transcript_id"), suffix = c(".qer.irr", ".sub.irr"))
 
+#query = RNA protein coding
+#target antisense transcript
 #obtener los cuadrantes +,- y -,+
-#filter(qer_sub_diff, (log2FoldChange.qer.amp * log2FoldChange.sub.amp) < 0) %>% ggplot(aes(x = log2FoldChange.sub.amp, y = log2FoldChange.qer.amp)) + geom_point()
+filter(qer_sub_diff, (log2FoldChange.qer.amp * log2FoldChange.sub.amp) < 0) %>% ggplot(aes(x = log2FoldChange.sub.amp, y = log2FoldChange.qer.amp)) + geom_point() + labs(x=)
 # irr : filter(qer_sub_diff, (log2FoldChange.qer.irr * log2FoldChange.sub.irr) < 0) %>% ggplot(aes(x = log2FoldChange.sub.irr, y = log2FoldChange.qer.irr)) + geom_point()
 
 
