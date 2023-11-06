@@ -1,17 +1,23 @@
 Some_statistics
 ================
 Jeronimo Miranda
-2023-11-01
+2023-11-06
 
 ## Length distribution of transcripts
 
-This is an R Markdown document. Markdown is a simple formatting syntax
-for authoring HTML, PDF, and MS Word documents. For more details on
-using R Markdown see <http://rmarkdown.rstudio.com>.
+The protein coding mRNAs come from the trinotate file, that makes a
+blast against the uniprot database both mRNA and protein to find
+orthologs. Protein coding are all of the mRNAs that had an ortholog in
+uniprot. These sequences were then aligned back to the transcriptome and
+filtered for alignments on the Antisense strand greater than 300 bp. The
+Target transcripts thus found are labelled as antisense transcripts. Out
+of the 39,844 unique transcripts with a swissprot annotation, we find
+only 9930 with at least one antisense transcript. On the other hand, the
+total number of unique antisense transcripts found this way is 26,953.
 
-When you click the **Knit** button a document will be generated that
-includes both content as well as the output of any embedded R code
-chunks within the document. You can embed an R code chunk like this:
+The length distribution of the two differ, with the antisense
+transcripts being closer to the whole transcriptome numbers (i. e.
+skewing towards smaller).
 
 ``` r
 select(ampirr, total_length.qer, total_length.target) %>% transmute(Protein_coding_mRNAs = total_length.qer, Antisense_Transcripts = total_length.target) %>% summary()
@@ -29,7 +35,16 @@ We can see that through all quartiles, Protein coding mRNAs are longer
 than antisense Transcripts, with the median protein coding mRNA being
 1kb while half of antisense transcripts are shorter than 413 nucleotides
 (this is after already filtering all non coding RNAs shorter than 200
-bp)
+bp). Compare to the total length distribution of the transcriptome: 75%
+of all transcripts have a length of less than 687 nucleotides:
+
+    ##  transcript_id       total_length    
+    ##  Length:464338      Min.   :  169.0  
+    ##  Class :character   1st Qu.:  270.0  
+    ##  Mode  :character   Median :  385.0  
+    ##                     Mean   :  696.2  
+    ##                     3rd Qu.:  687.0  
+    ##                     Max.   :30666.0
 
 ``` r
 #pivot to longer dataframe
@@ -42,11 +57,3 @@ ampirr %>% transmute(qseqid, sseqid, Protein_coding_mRNAs = total_length.qer, An
 ```
 
 ![](SomeStatistics_files/figure-gfm/Grafica%20de%20longitud-1.png)<!-- -->
-\## Comparison in mRNA transcript levels with their Antisense
-counterpart
-
-``` r
-filter(qer_sub_diff, (log2FoldChange.qer.amp * log2FoldChange.sub.amp) < 0) %>% ggplot(aes(x = log2FoldChange.sub.amp, y = log2FoldChange.qer.amp)) + geom_point() + labs(title = "Amp") + theme(plot.title = element_text(hjust = 0.5))
-```
-
-![](SomeStatistics_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
