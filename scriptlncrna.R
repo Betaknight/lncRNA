@@ -1,36 +1,38 @@
 library(readr)
-amputated_df_crbb_annotated_df_len_crbb_trin <- read_csv("C:/Users/cbzom/Downloads/amputated_df_crbb_annotated - df_len_crbb_trin.csv", na = c("NA",".",""))
-library(readr)
-irradiated_df_crbb_annotation_df_len_crbb_trin <- read_csv("C:/Users/cbzom/Downloads/irradiated_df_crbb_annotation - df_len_crbb_trin.csv", na = c("NA","","."))
-library(readr)
-tablaguia <- read_csv("~/Practica/Practicarna/tablaguia.csv")
-library(readr)
-swissProt_self_blastAStranscripts <- read_delim(paste0(directorio, "swissProt_self_blastAStranscripts.csv"), 
-                                                delim = "\t", escape_double = FALSE, 
-                                                col_names = FALSE, trim_ws = TRUE)
-View(swissProt_self_blastAStranscripts)
-colnames(swissProt_self_blastAStranscripts) <- c("qseqid", "sseqid", "length", "mismatch", "pident", "frames", "qstart", "qend", "sstart", "send", "evalue", "bitscore")
-
-library(readr)
-ss_analysisAMP <- read_delim("ss_analysisAMP.dat", 
-                             delim = "\t", escape_double = FALSE, 
-                             trim_ws = TRUE)
-View(ss_analysisAMP)
-library(readr)
-ss_analysisIrr <- read_delim("ss_analysisIrr.dat", 
-                             delim = "\t", escape_double = FALSE, 
-                             trim_ws = TRUE)
-View(ss_analysisIrr)
-
-
+#amputated_df_crbb_annotated_df_len_crbb_trin <- read_csv("C:/Users/cbzom/Downloads/amputated_df_crbb_annotated - df_len_crbb_trin.csv", na = c("NA",".",""))
+#irradiated_df_crbb_annotation_df_len_crbb_trin <- read_csv("C:/Users/cbzom/Downloads/irradiated_df_crbb_annotation - df_len_crbb_trin.csv", na = c("NA","","."))
 library(dplyr)
 library(tidyr)
 library(forcats)
 library(stringr)
 library(ggplot2)
 library(here)
-
 directorio <- here()
+results_full_amp_degs <- read_csv(paste0(directorio,"/data/results_full_amp_degs.csv"), 
+                                  col_types = cols(...8 = col_skip()))
+
+results_full_irr_degs <- read_csv(paste0(directorio,"/data/results_full_irr_degs.csv"), 
+                                  col_types = cols(...8 = col_skip()))
+
+#cargar resutados de expresion diferencial
+colnames(results_full_amp_degs)[1] <- "transcript_id"
+colnames(results_full_irr_degs)[1] <- "transcript_id"
+
+#Cargar blast results transcritos de antisentidos
+swissProt_self_blastAStranscripts <- read_delim(paste0(directorio, "/data/swissProt_self_blastAStranscripts.csv"), 
+                                                delim = "\t", escape_double = FALSE, 
+                                                col_names = FALSE, trim_ws = TRUE)
+
+colnames(swissProt_self_blastAStranscripts) <- c("qseqid", "sseqid", "length", "mismatch", "pident", "frames", "qstart", "qend", "sstart", "send", "evalue", "bitscore")
+
+ss_analysisAMP <- read_delim(paste0(directorio,"/data/ss_analysisAMP.dat"), 
+                             delim = "\t", escape_double = FALSE, 
+                             trim_ws = TRUE)
+ss_analysisIrr <- read_delim(paste0(directorio,"/data/ss_analysisIrr.dat"), 
+                             delim = "\t", escape_double = FALSE, 
+                             trim_ws = TRUE)
+View(ss_analysisIrr)
+
 
 colnames(ss_analysisAMP)[1] <- "transcript_id"
 colnames(ss_analysisIrr)[1] <- "transcript_id"
@@ -44,12 +46,15 @@ ampirr <- left_join(ampirr, ss_analysisAMP, by = join_by("sseqid" == "transcript
 ampirr <- left_join(ampirr, ss_analysisIrr, by = join_by("sseqid" == "transcript_id"), suffix = c(".amp.target", ".irr.target"))
 ampirr <- ampirr %>% mutate(diff_ratio_ampirr.target = ((plus_strand_1stReads.amp.target + plus_strand_1stReads.irr.target) - (minus_strand_1stReads.amp.target + minus_strand_1stReads.irr.target))/(total_reads.amp.target + total_reads.irr.target))
 
-ggplot(data = ampirr, aes(x = diff_ratio_ampirr.qer)) + geom_histogram() + labs(x = "diff ratio amp + irr", title = "Query") + theme(plot.title = element_text(hjust = 0.5)) + xlim(-1,1)
-ggplot(data = ampirr, aes(x = diff_ratio_ampirr.target)) + geom_histogram() + labs(x = "diff ratio amp + irr", title = "Target") + theme(plot.title = element_text(hjust = 0.5)) + xlim(-1,1)
+#Histogram of the ratio of reads on the positive and the negative strand (ideal is -1)
+ggplot(data = ampirr, aes(x = diff_ratio_ampirr.qer)) + geom_histogram() + 
+  labs(x = "Difference ratio of reads", title = "Query mRNAs show the expected predominance of minus strand reads", subtitle = "Difference ratio taking into account both experiments", y = "Number of transcripts") + theme(plot.title = element_text(hjust = 0.5)) + xlim(-1,1)
+ggplot(data = ampirr, aes(x = diff_ratio_ampirr.target)) + geom_histogram() + 
+  labs(x = "Difference ratio of reads", title = "Antisense mRNAs show an even distribution of read strand", subtitle = "Difference ratio taking into account both experiments", y = "Number of transcripts") + theme(plot.title = element_text(hjust = 0.5)) + xlim(-1,1)
 
 
-library(readr)
-longitudes <- read_table("longitudes.txt", 
+#length of mRNAs
+longitudes <- read_table(paste0(directorio,"/data/longitudes.txt"), 
                          col_names = FALSE)
 View(longitudes)
 
@@ -57,17 +62,18 @@ colnames(longitudes) <- c("transcript_id", "total_length")
 ampirr <- inner_join(ampirr, longitudes, by = join_by("qseqid" == "transcript_id"))
 ampirr <- inner_join(ampirr, longitudes, by = join_by("sseqid" == "transcript_id"), suffix = c(".qer", ".target"))
 
-select(ampirr, qseqid, total_length.qer) %>% unique() %>% ggplot(aes(x = total_length.qer)) + geom_histogram(binwidth = 200) + scale_x_continuous(n.breaks = 10)
+#length distribution of mRNAs
+select(ampirr, qseqid, total_length.qer) %>% unique() %>%
+  ggplot(aes(x = total_length.qer)) + geom_histogram(binwidth = 200) + scale_x_continuous(n.breaks = 10)
+
+select(ampirr, sseqid, total_length.target) %>% unique() %>%
+  ggplot(aes(x = total_length.target)) + geom_histogram(binwidth = 200) + scale_x_continuous(n.breaks = 10)
 
 # Filtrado de matches mayores a 300
 
 filtrados <- filter(ampirr, length > 300)
 
-#cargar resutados de expresion diferencial
-colnames(results_full_amp_degs)[1] <- "transcript_id"
-colnames(results_full_irr_degs)[1] <- "transcript_id"
-
-#experimento
+#Joining the Antisense blast table with the 
 qer_sub_diff <- left_join(select(filtrados, qseqid, sseqid),select(results_full_amp_degs,transcript_id, log2FoldChange, padj), by = join_by("qseqid" == "transcript_id")) %>% 
 left_join(select(results_full_amp_degs,transcript_id, log2FoldChange, padj), by =join_by("sseqid" == "transcript_id"), suffix = c(".qer.amp", ".sub.amp")) %>% 
 left_join(select(results_full_irr_degs, transcript_id, log2FoldChange, padj), by = join_by("qseqid" == "transcript_id")) %>% 

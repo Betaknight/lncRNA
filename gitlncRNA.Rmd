@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Librerias
 
-```{r warning=FALSE}
+```{r message=FALSE, warning=FALSE, include=FALSE}
 
 library(dplyr)
 library(tidyr)
@@ -23,8 +23,10 @@ library(here)
 directorio <- here()
 source("scriptlncrna.R")
 ```
+
+You can check some preliminary analysis and summary statistics [here](./SomeStatistics.md)
 Union de las columnas: plus, minus, total strands y diff ratio de AMP e IRR con query y target
-Los histogramas son respecto al dif-ratio de la suma de amp y irr para querry y target
+Los histogramas son respecto al dif-ratio de la suma de amp y irr para querry y target 
 
 ```{r}
 ggplot(data = ampirr, aes(x = diff_ratio_ampirr.qer)) + geom_histogram() + labs(x = "diff ratio amp + irr", title = "Query") + theme(plot.title = element_text(hjust = 0.5)) + xlim(-1,1)
