@@ -8,7 +8,10 @@ library(stringr)
 library(ggplot2)
 library(here)
 directorio <- here()
-dlaevis_assembly_uniprt <- read_table(paste0(directorio,"data/dlaevis_assembly_uniprt.csv"))
+dlaevis_assembly_uniprt <- read_delim(paste0(directorio,"/data/dlaevis_assembly_uniprt.csv", 
+                                      delim = "\t", escape_double = FALSE, 
+                                      col_types = cols(length = col_integer()), 
+                                      trim_ws = TRUE))
                                       
 results_full_amp_degs <- read_csv(paste0(directorio,"/data/results_full_amp_degs.csv"), 
                                   col_types = cols(...8 = col_skip()))
@@ -39,7 +42,7 @@ View(ss_analysisIrr)
 colnames(ss_analysisAMP)[1] <- "transcript_id"
 colnames(ss_analysisIrr)[1] <- "transcript_id"
 
-#Union de los plus, minus, total strands y diff ratio de AMP e IRR con query y target
+#Union de los reads plus, minus, total strands y diff ratio de AMP e IRR con query y target
 
 ampirr <- left_join(swissProt_self_blastAStranscripts, ss_analysisAMP, by = join_by("qseqid" == "transcript_id"))
 ampirr <- left_join(ampirr, ss_analysisIrr, by = join_by("qseqid" == "transcript_id"), suffix = c(".amp.qer", ".irr.qer"))
@@ -75,7 +78,7 @@ select(ampirr, sseqid, total_length.target) %>% unique() %>%
 
 filtrados <- filter(ampirr, length > 300)
 
-#Joining the Antisense blast table with the 
+#Joining the Antisense blast table with log2foldchange and padj
 qer_sub_diff <- left_join(select(filtrados, qseqid, sseqid),select(results_full_amp_degs,transcript_id, log2FoldChange, padj), by = join_by("qseqid" == "transcript_id")) %>% 
 left_join(select(results_full_amp_degs,transcript_id, log2FoldChange, padj), by =join_by("sseqid" == "transcript_id"), suffix = c(".qer.amp", ".sub.amp")) %>% 
 left_join(select(results_full_irr_degs, transcript_id, log2FoldChange, padj), by = join_by("qseqid" == "transcript_id")) %>% 
@@ -83,19 +86,66 @@ left_join(select(results_full_irr_degs, transcript_id, log2FoldChange, padj), by
 
 #query = RNA protein coding
 #target antisense transcript
-#obtener los cuadrantes +,- y -,+
-filter(qer_sub_diff, (log2FoldChange.qer.amp * log2FoldChange.sub.amp) < 0) %>% ggplot(aes(x = log2FoldChange.sub.amp, y = log2FoldChange.qer.amp)) + geom_point() + labs(x=)
-# irr : filter(qer_sub_diff, (log2FoldChange.qer.irr * log2FoldChange.sub.irr) < 0) %>% ggplot(aes(x = log2FoldChange.sub.irr, y = log2FoldChange.qer.irr)) + geom_point()
 
 
-# Amp, padj menor a 0.05 de qer.
-#filter(qer_sub_diff, (log2FoldChange.qer.amp * log2FoldChange.sub.amp) < 0) %>% filter(padj.sub.amp < 0.05) %>% ggplot(aes(x = log2FoldChange.sub.amp, y = log2FoldChange.qer.amp)) + geom_point()
+#Creacion de un DF con el inicio y fin de la prot
+prot <- select(dlaevis_assembly_uniprt, transcript_id, prot_coords) %>% separate(prot_coords, c("prot_start", "prot_end"), sep = "-") %>% mutate(prot_end = str_remove(prot_end, "[+]"))
+prot$prot_end <- gsub("[\\[\\]", "", prot$prot_end)
+prot$prot_end <- gsub("]", "", prot$prot_end)
+# convertir las strings a numeros
+prot$prot_start <- as.numeric(prot$prot_start)
+prot$prot_end <- as.numeric(prot$prot_end)
+prot<- unique(prot)
+prot<- filter(prot, prot_start != 0)
+prot<- filter(prot, prot_end != 0)
 
-# Irr 
-# filter(qer_sub_diff, (log2FoldChange.qer.irr * log2FoldChange.sub.irr) < 0) %>% filter(padj.sub.irr < 0.05) %>% ggplot(aes(x = log2FoldChange.sub.irr, y = log2FoldChange.qer.irr)) + geom_point()
+# Strings negativas generalmente tienen NA en BlastP
+# filter(dlaevis_assembly_uniprt, str_detect(prot_coords, "\\[-\\]"))
+# juntar las tablas de prot_coords (end y start), con las coordenadas de matches de query y en sentido positivo
+prot <- left_join(select(filtrados, qseqid, sseqid, length, qstart, qend,sstart, send), prot, by = join_by("qseqid" == "transcript_id")) %>%  filter(prot_start < prot_end)
 
-antisense_sig <- qer_sub_diff %>% filter(padj.sub.amp < 0.05)
-# qer_sub_diff %>% filter(padj.sub.irr < 0.05) AUN NO ESTA ASIGNADO A UN OBJEO
+# el caso 3, incluye tambien a los del caso 5, y el 4 incluye tambien a los del caso 6, por eso el caso 5 y 6 van primero
+prot$caso <- case_when(
+  prot$qstart >= prot$prot_end & prot$qend > prot$prot_end ~ "caso 6",
+  prot$qstart < prot$prot_start & prot$qend <= prot$prot_start ~ "caso 5",
+  prot$qstart >= prot$prot_start & prot$qend <= prot$prot_end ~ "caso 1",
+  prot$qstart <= prot$prot_start & prot$qend >= prot$prot_end & prot$length > (prot$prot_end - prot$prot_start) ~ "caso 2",
+  prot$qstart <= prot$prot_start & prot$qend <= prot$prot_end ~ "caso 3",
+  prot$qstart >= prot$prot_start & prot$qend >= prot$prot_end ~ "caso 4",
+)
 
-# hacer le left join con elq uery, avance aun no asignado a un objeto
-#left_join(antisense_sig, dlaevis_assembly_uniprt, by =join_by("qseqid" == "transcript_id")) %>% select(qseqid, sseqid, protein_names) %>% unique() %>% View
+#descripción de casos
+#caso 1 El match cae dentro del CDS
+#caso 2 El match es tan largo que cae tanto en 5UTR, CDS y 3UTR
+#caso 3 El match empieza en la zona 5UTR
+#caso 4 El match empieza en la zona de CDS y termina en 3UTR
+#caso 5 El match es en la zona 5UTR
+#caso 6 El match es en la zona 3UTR
+
+#filter(prot, caso != NA) %>%  View
+#filter(prot, caso != 0) %>%  View
+#filter(prot, cprot_end != 0) %>%  View
+#filter(prot, prot_end != 0) %>%  View
+
+prot <- mutate(prot, prot_end - prot_start)
+colnames(prot)[11] <- "CDS_length"
+prot <- left_join(prot, longitudes, by = join_by("qseqid" == "transcript_id"))
+prot <- mutate(prot, total_length - prot_end)
+colnames(prot)[13] <- "UTR_3"
+
+# mutate(CDS_length = prot_end - prot_start)
+#largo del 5UTR = inicio -1
+#select(prot, qseqid, total_length) %>% unique() %>% ggplot(aes(x = total_length)) + geom_histogram() + labs(x = "bp", title = "Total_length") + theme(plot.title = element_text(hjust = 0.5))
+
+
+#prot %>% group_by(qseqid) %>% summarise(no = n()) %>%  View
+#prot %>% group_by(qseqid) %>% summarise(no = n()) %>%  left_join(select(prot,qseqid, total_length), by = "qseqid") %>%  View
+
+#prot %>% group_by(qseqid) %>% summarise(Median_3p = median(qstart))
+#prot %>% summarise(Median_3p = median(qstart))
+#prot %>% group_by(qseqid) %>% summarise(No = n(), suma = sum(length), total = unique(total_length))
+#prot %>% group_by(qseqid) %>% summarise(No = n(), suma = sum(length), total = unique(caso))
+#prot %>% group_by(qseqid) %>% summarise(No = n(), total = unique(total_length)) %>% ggplot(aes(x = No, y = total)) + geom_point() + labs(title = "Grafica") + theme(plot.title = element_text(hjust = 0.5))
+#prot %>% group_by(qseqid) %>% summarise(No = n(), total = unique(total_length)) %>% ggplot(aes(x = total, y = No)) + geom_point() + labs(title = "Grafica") + theme(plot.title = element_text(hjust = 0.5))
+#prot %>% group_by(qseqid) %>% summarise(No = n(),suma = sum(length), total = unique(total_length)) %>% ggplot(aes(x = total, y = suma)) + geom_point() + labs(title = "Grafica") + theme(plot.title = element_text(hjust = 0.5))
+#prot %>% group_by(qseqid) %>% summarise(No = n(),mean = mean(length), total = unique(total_length)) %>% ggplot(aes(x = total, y = mean)) + geom_point() + labs(title = "Grafica") + theme(plot.title = element_text(hjust = 0.5))

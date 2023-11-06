@@ -25,6 +25,7 @@ source("scriptlncrna.R")
 ```
 
 You can check some preliminary analysis and summary statistics [here](./SomeStatistics.md)
+
 Union de las columnas: plus, minus, total strands y diff ratio de AMP e IRR con query y target
 Los histogramas son respecto al dif-ratio de la suma de amp y irr para querry y target 
 
@@ -35,7 +36,7 @@ ggplot(data = ampirr, aes(x = diff_ratio_ampirr.target)) + geom_histogram() + la
 
 ```
 
-Expresion diferencial de
+Expresión diferencial para las condiciones de amputación y radiación
 
 ```{r}
 #amp
@@ -43,6 +44,16 @@ filter(qer_sub_diff, (log2FoldChange.qer.amp * log2FoldChange.sub.amp) < 0) %>% 
 
 #irr
 filter(qer_sub_diff, (log2FoldChange.qer.irr * log2FoldChange.sub.irr) < 0) %>% ggplot(aes(x = log2FoldChange.sub.irr, y = log2FoldChange.qer.irr)) + geom_point() + labs(title = "Irr") + theme(plot.title = element_text(hjust = 0.5))
+
+#Grafica de puntos de los cuadrantes +,- y -,+ #
+#filter(qer_sub_diff, (log2FoldChange.qer.amp * log2FoldChange.sub.amp) < 0) %>% ggplot(aes(x = log2FoldChange.sub.amp, y = log2FoldChange.qer.amp)) + geom_point() + labs(y= "RNA protein coding", x= "antisense transcript", title = "upregulation", subtitle = "Differential expression in amputated condition")
+#irr : filter(qer_sub_diff, (log2FoldChange.qer.irr * log2FoldChange.sub.irr) < 0) %>% ggplot(aes(x = log2FoldChange.sub.irr, y = log2FoldChange.qer.irr)) + geom_point() + labs(y= "RNA protein coding", x= "antisense transcript")
+
+# Amp, padj menor a 0.05 de qer.
+#filter(qer_sub_diff, (log2FoldChange.qer.amp * log2FoldChange.sub.amp) < 0) %>% filter(padj.sub.amp < 0.05) %>% ggplot(aes(x = log2FoldChange.sub.amp, y = log2FoldChange.qer.amp)) + geom_point()
+
+# Irr 
+# filter(qer_sub_diff, (log2FoldChange.qer.irr * log2FoldChange.sub.irr) < 0) %>% filter(padj.sub.irr < 0.05) %>% ggplot(aes(x = log2FoldChange.sub.irr, y = log2FoldChange.qer.irr)) + geom_point()
 
 ```
 
