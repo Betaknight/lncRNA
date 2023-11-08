@@ -12,12 +12,31 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r source data, message=FALSE, warning=FALSE, include=FALSE}
 library(ggExtra)
 source("scriptlncrna.R")
+source("1_someStatistics_backgroundScript.R")
 ```
+
+## Transcript classification
+We took the information of which mRNAs are protein coding from Trinotate, that makes a blastn and tblastn against the uniprot database to find orthologs. Protein coding are all of the mRNAs that had an ortholog in uniprot. 
+
+```{r Coding and non coding transcripts, echo=FALSE, message=FALSE, warning=FALSE}
+data_donut <- transcript_classification %>% ungroup %>% group_by(rna_type) %>%
+  summarise(rna_type = unique(rna_type), number = n()) %>%
+  mutate(category = case_match(rna_type, "Nonsense" ~ "Nonsense", "nonCoding" ~ "Non coding", .default = "Peptide"), label = paste0(category, "\n value: ", number), ymax = cumsum(number), ymin = lag(ymax, default = 0))
+
+transcript_classification %>% ggplot(aes(x = 3.5, fill = rna_type)) + geom_bar() + coord_polar(theta = "y") + xlim(c(2,4)) + geom_label(data = data_donut, x =3.5, aes(y = number, label = label)) + theme_void()
+
+```
+
 
 ## Length distribution of transcripts
 
-The protein coding mRNAs come from the trinotate file, that makes a blast against the uniprot database both mRNA and protein to find orthologs. Protein coding are all of the mRNAs that had an ortholog in uniprot. These sequences were then aligned back to the transcriptome and filtered for alignments on the Antisense strand greater than 300 bp. The Target transcripts thus found are labelled as antisense transcripts. Out of the 39,844 unique transcripts with a swissprot annotation, we find only 9930 with at least one antisense transcript. On the other hand, the total number of unique antisense transcripts found this way is 26,953. 
 
+
+These sequences were then aligned back to the whole transcriptome with blastn. The resulting alignments were filtered to be plus/minus alignments and to span longer than 300 bp. The Target transcripts thus found are labelled as antisense transcripts, because they match the protein coding mRNAs at least partially on their antisense strand. Out of the 39,844 unique transcripts with a swissprot annotation, we find only 9930 with at least one antisense transcript. On the other hand, the total number of unique antisense transcripts found this way is 26,953.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+```
 
 
 The length distribution of the two differ, with the antisense transcripts being closer to the whole transcriptome numbers (i. e. skewing towards smaller). 

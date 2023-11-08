@@ -1,16 +1,32 @@
 Some_statistics
 ================
 Jeronimo Miranda
-2023-11-06
+2023-11-08
+
+## Transcript classification
+
+We took the information of which mRNAs are protein coding from
+Transdecoder. More than 400,000 out of the 464,338 transcripts do not
+code for a detectable peptide. Afterwards, to have an idea of
+annotation, we use TRinotate that aligns with blastn and tblastn against
+the uniprot database to find putative orthologs. There is also a small
+but significant population of transcripts that have a significant match
+at the RNA level but do not have a significant tblastn alignment (mostly
+because transdecoder could not find the corresponding ORF). We assume
+for now that these are either artifactual or non-functional isoforms and
+are marked as *“nonsense”*. Later, if a gene has at least one nonsense
+transcript, and no transcripts with coding potential, we will classify
+this gene as a pseudogene.
+
+![](SomeStatistics_files/figure-gfm/Coding%20and%20non%20coding%20transcripts-1.png)<!-- -->
 
 ## Length distribution of transcripts
 
-The protein coding mRNAs come from the trinotate file, that makes a
-blast against the uniprot database both mRNA and protein to find
-orthologs. Protein coding are all of the mRNAs that had an ortholog in
-uniprot. These sequences were then aligned back to the transcriptome and
-filtered for alignments on the Antisense strand greater than 300 bp. The
-Target transcripts thus found are labelled as antisense transcripts. Out
+These sequences were then aligned back to the whole transcriptome with
+blastn. The resulting alignments were filtered to be plus/minus
+alignments and to span longer than 300 bp. The Target transcripts thus
+found are labelled as antisense transcripts, because they match the
+protein coding mRNAs at least partially on their antisense strand. Out
 of the 39,844 unique transcripts with a swissprot annotation, we find
 only 9930 with at least one antisense transcript. On the other hand, the
 total number of unique antisense transcripts found this way is 26,953.
