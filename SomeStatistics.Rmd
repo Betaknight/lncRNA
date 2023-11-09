@@ -46,7 +46,13 @@ Perhaps the most interesting subset are the 15737 peptides that show no similari
 
 ### Gene level integration
 
-First, because of the one-to-many relationship between transcripts and peptides, we made a further classification of transcripts according to the peptides they produce. 
+First, because of the one-to-many relationship between transcripts and peptides, we made a further classification of transcripts according to the peptides they produce. A transcript can code for many peptides, but we classify a transcript as *Swissprot* annotated if at least one of the peptides has a valid top ortholog from the SWissprot database. Next, a transcript is annotated as either Truncated, Unnanotated or Wrong strand if any of the peptides they produce belong to one of these categories and none of the peptides they produce belong to the others. Transcripts that produce a combination of these are not shown.
+
+Next, we group transcripts by their Trinity assembly "gene" and classify them as:
+- "Swissprot" genes if **any** of the transcripts produce a peptide with a Swissprot ortholog.
+- We classified them as *Unnanotated* if **all** of the transcripts code for an unnanotated protein (this might be an underestimation).
+- We classify a transcript as *Non coding* if **all** of their transcripts are non coding
+- We classify a transcript as pseudogene if **all** of their transcripts belong to either non coding, truncated or 
 
 ```{r gene level, echo=FALSE, fig.height=4, fig.width=11, message=FALSE, warning=FALSE}
 data_donut <- gene_classification %>% filter(gene_type != "Non coding") %>% group_by(gene_type) %>%  summarise(type = unique(gene_type), number = n()) %>% mutate(label = paste0(gene_type, "\n n = ", number), ymax = cumsum(number), ymin = lag(ymax, default = 0))
@@ -61,11 +67,25 @@ grid.arrange(p1,p2, ncol =2)
 
 ## Length distribution of transcripts
 
-These sequences were then aligned back to the whole transcriptome with blastn. The resulting alignments were filtered to be plus/minus alignments and to span longer than 300 bp. The Target transcripts thus found are labelled as antisense transcripts, because they match the protein coding mRNAs at least partially on their antisense strand. Out of the 39,844 unique transcripts with a swissprot annotation, we find only 9930 with at least one antisense transcript. On the other hand, the total number of unique antisense transcripts found this way is 26,953.
+We will now go into length distribution of transcripts. As stated before, there are ~464,000 transcripts. By looking at a summary, we already see that the distribution is heavily right skewed. The minimum size is 169, and the maximum is 30kb (Spoiler: this is the Titin gene, the longest known protein in humans). Still, the third quartile is 687. That is, 75% of transcripts are shorter than the mean.
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-
+```{r summary of lengths, echo=TRUE, message=FALSE, warning=FALSE}
+summary(longitudes$total_length)
 ```
+
+To visualize this distribution, we log transform the data (exp = e)
+
+```{r histogram whole transcriptome, echo=FALSE, message=FALSE, warning=FALSE}
+longitudes %>% ggplot() + geom_histogram(aes(x = log(total_length))) + theme_bw() + labs(x = "log(transcript length) [nucleotides]", title = "The distribution of transcript length is heavily righ skewed", subtitle = "Histogram of log transformed transfript length")
+```
+
+
+
+
+## Antisense transcripts
+
+
+These sequences were then aligned back to the whole transcriptome with blastn. The resulting alignments were filtered to be plus/minus alignments and to span longer than 300 bp. The Target transcripts thus found are labelled as antisense transcripts, because they match the protein coding mRNAs at least partially on their antisense strand. Out of the 39,844 unique transcripts with a swissprot annotation, we find only 9930 with at least one antisense transcript. On the other hand, the total number of unique antisense transcripts found this way is 26,953.
 
 
 The length distribution of the two differ, with the antisense transcripts being closer to the whole transcriptome numbers (i. e. skewing towards smaller). 
