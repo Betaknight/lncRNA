@@ -1,7 +1,7 @@
 Some_statistics
 ================
 Jeronimo Miranda
-2023-11-08
+2023-11-09
 
 ## Transcript classification
 
@@ -19,7 +19,8 @@ transcript, and no transcripts with coding potential, we will classify
 this gene as a pseudogene.
 
 ![](SomeStatistics_files/figure-gfm/Coding%20and%20non%20coding%20transcripts-1.png)<!-- -->
-\### Annotation guided more granular classification of transcripts
+
+### Annotation guided more granular classification of transcripts
 
 We have already classified non-coding transcripts using the Transdecoder
 annotation as support: transcripts that could be annotated just as
@@ -35,6 +36,32 @@ frame. This is reflected in the 70,572 unique prot_id’s from the
 transdecoder file.
 
 ![](SomeStatistics_files/figure-gfm/coding%20transcripts-1.png)<!-- -->
+
+There are 28 thousand peptides with a protein match to uniprot. This is
+somewhat on the ballpark of the human genome? On the other hand, 31% of
+the peptides are predicted to be on the opposite strand (-). This is a
+lot, specially given our dataset strandedness. These transcripts could
+correspond to antisense transcripts, though. Obviously, even if
+transdecoder predicted ORFs on the opposite strand, if the assembly for
+these transcripts is correct, the peptides cannot be produced. We
+classify as *“Truncated”* the 3714 RNAs that code for a peptide, and
+show similarity at the level of the RNA but not enough to show
+similarity at the tblastn level. These transcripts could be added to the
+possible pseudogene category, although of course this is not necesarilly
+the case.
+
+Perhaps the most interesting subset are the 15737 peptides that show no
+similarity to any uniprot protein or mRNA. These *“Unnanotated”* dataset
+could correspond to novel mollusk or gasteropod genes, however, we will
+wait for the gene-level integration before making this call.
+
+### Gene level integration
+
+First, because of the one-to-many relationship between transcripts and
+peptides, we made a further classification of transcripts according to
+the peptides they produce.
+
+![](SomeStatistics_files/figure-gfm/gene%20level-1.png)<!-- -->
 
 ## Length distribution of transcripts
 
