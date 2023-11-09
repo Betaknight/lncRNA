@@ -11,19 +11,76 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r source data, message=FALSE, warning=FALSE, include=FALSE}
 library(ggExtra)
+library(gridExtra)
 source("scriptlncrna.R")
+source("1_someStatistics_backgroundScript.R")
 ```
+
+## Transcript classification
+We took the information of which mRNAs are protein coding from Transdecoder. More than 400,000 out of the 464,338 transcripts do not code for a detectable peptide. Afterwards, to have an idea of annotation, we use TRinotate that aligns with blastn and tblastn against the uniprot database to find putative orthologs. There is also a small but significant population of transcripts that have a significant match at the RNA level but do not have a significant tblastn alignment (mostly because transdecoder could not find the corresponding ORF). We assume for now that these are either artifactual or non-functional isoforms and are marked as *"nonsense"*. Later, if a gene has at least one nonsense transcript, and no transcripts with coding potential, we will classify this gene as a pseudogene.
+
+```{r Coding and non coding transcripts, echo=FALSE, message=FALSE, warning=FALSE}
+data_donut <- transcript_classification %>% ungroup %>% group_by(rna_type) %>%
+    summarise(rna_type = unique(rna_type), number = n()) %>%
+    mutate(category = case_match(rna_type, "Nonsense" ~ "Nonsense", "nonCoding" ~ "Non coding", .default = "Peptide"), label = paste0(category, "\n n = ", number), ymax = cumsum(number), ymin = lag(ymax, default = 0))
+
+transcript_classification %>% ggplot(aes(x = 3.5, fill = rna_type)) + geom_bar() + xlim(c(2,4)) + geom_label(y = c(60000, 12500, 200000), data = data_donut, x =4.1, aes(label = label)) + theme_void() + coord_polar(theta = "y") + theme(legend.position = "none") + labs(title = "The vast majority of transcripts do not code for peptides")
+
+```
+
+### Annotation guided more granular classification of transcripts
+
+We have already classified non-coding transcripts using the Transdecoder annotation as support: transcripts that could be annotated just as non-coding are classified as non-sense, because they do show some similarity to uniprot transcripts, even when they do not seem to code for a peptide. The previous classification was done at the transcript level. The next classification, pertains to peptides and so, will only apply to the 60,247 transcripts for which transdecoder found at least one peptide. The relationship between transcripts and peptides is one-to-many, though, because one transcript has six possible reading frames and could even code for more than one peptide in the same reading frame. This is reflected in the 70,572 unique prot_id's from the transdecoder file.
+
+```{r coding transcripts, echo=FALSE, message=FALSE, warning=FALSE}
+data_donut <- trinotate %>% filter(!is.na(peptide_type)) %>% group_by(peptide_type) %>%
+    summarise(peptide_type = unique(peptide_type), number = n()) %>%
+    mutate(label = paste0(peptide_type, "\n n = ", number), ymax = cumsum(number), ymin = lag(ymax, default = 0))
+
+trinotate %>% filter(!is.na(peptide_type)) %>% ggplot(aes(x = 3.5, fill = peptide_type)) + geom_bar(position = position_stack(reverse = TRUE)) + coord_polar(theta = "y") + xlim(c(2,4)) + theme_void() + geom_label(data=data_donut, aes(y = (ymax + ymin)/2, x = 3.5, label = label)) + theme(legend.position = "null") + labs(title = "Sizeable fractions of peptides on the wrong strand and \n peptides not present in uniprot", subtitle = "Peptide-wise classification of the ORFs predicted by transdecoder")
+```
+
+There are 28 thousand peptides with a protein match to uniprot. This is somewhat on the ballpark of the human genome? On the other hand, 31% of the peptides are predicted to be on the opposite strand (-). This is a lot, specially given our dataset strandedness. These transcripts could correspond to antisense transcripts, though. Obviously, even if transdecoder predicted ORFs on the opposite strand, if the assembly for these transcripts is correct, the peptides cannot be produced. We classify as *"Truncated"* the 3714 RNAs that code for a peptide, and show similarity at the level of the RNA but not enough to show similarity at the tblastn level. These transcripts could be added to the possible pseudogene category, although of course this is not necesarilly the case. 
+
+Perhaps the most interesting subset are the 15737 peptides that show no similarity to any uniprot protein or mRNA. These *"Unnanotated"* dataset could correspond to novel mollusk or gasteropod genes, however, we will wait for the gene-level integration before making this call.
+
+### Gene level integration
+
+First, because of the one-to-many relationship between transcripts and peptides, we made a further classification of transcripts according to the peptides they produce. 
+
+```{r gene level, echo=FALSE, fig.height=4, fig.width=11, message=FALSE, warning=FALSE}
+data_donut <- gene_classification %>% filter(gene_type != "Non coding") %>% group_by(gene_type) %>%  summarise(type = unique(gene_type), number = n()) %>% mutate(label = paste0(gene_type, "\n n = ", number), ymax = cumsum(number), ymin = lag(ymax, default = 0))
+
+p2 <- gene_classification %>% filter(gene_type != "Non coding") %>% ggplot(aes(x=3.5, fill = gene_type)) + geom_bar(position = position_stack(reverse = T)) + coord_polar(theta = "y") + xlim(c(2,4)) + theme_void() + labs(title = "Putative pseudogenes and unnanotated novel ORFs") + geom_label(data = data_donut, x =4.1, aes(y = (ymax + ymin)/2, label = label)) + theme_void() + coord_polar(theta = "y") + theme(legend.position = "none")
+
+p1 <- gene_classification %>% ggplot(aes(x=3.5, fill = gene_type)) + geom_bar() + coord_polar(theta = "y") + xlim(c(2,4)) + theme_void() + labs(title = "Most genes produce only Non coding transcripts", caption = "Total of 357,706 trinotate \"genes\"")
+
+grid.arrange(p1,p2, ncol =2)
+```
+
 
 ## Length distribution of transcripts
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+These sequences were then aligned back to the whole transcriptome with blastn. The resulting alignments were filtered to be plus/minus alignments and to span longer than 300 bp. The Target transcripts thus found are labelled as antisense transcripts, because they match the protein coding mRNAs at least partially on their antisense strand. Out of the 39,844 unique transcripts with a swissprot annotation, we find only 9930 with at least one antisense transcript. On the other hand, the total number of unique antisense transcripts found this way is 26,953.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+```
+
+
+The length distribution of the two differ, with the antisense transcripts being closer to the whole transcriptome numbers (i. e. skewing towards smaller). 
 
 ```{r summary, message=FALSE, warning=TRUE}
 select(ampirr, total_length.qer, total_length.target) %>% transmute(Protein_coding_mRNAs = total_length.qer, Antisense_Transcripts = total_length.target) %>% summary()
 ```
-We can see that through all quartiles, Protein coding mRNAs are longer than antisense Transcripts, with the median protein coding mRNA being 1kb while half of antisense transcripts are shorter than 413 nucleotides (this is after already filtering all non coding RNAs shorter than 200 bp)
+We can see that through all quartiles, Protein coding mRNAs are longer than antisense Transcripts, with the median protein coding mRNA being 1kb while half of antisense transcripts are shorter than 413 nucleotides (this is after already filtering all non coding RNAs shorter than 200 bp). Compare to the total length distribution of the transcriptome: 75% of all transcripts have a length of less than 687 nucleotides:
+
+```{r summary whole, echo=FALSE, message=FALSE, warning=FALSE}
+summary(longitudes)
+```
+
+
+
 ```{r Grafica de longitud, message=FALSE, warning=FALSE}
 #pivot to longer dataframe
 ampirr %>% transmute(qseqid, sseqid, Protein_coding_mRNAs = total_length.qer, Antisense_Transcripts = total_length.target) %>% 
@@ -34,9 +91,6 @@ ampirr %>% transmute(qseqid, sseqid, Protein_coding_mRNAs = total_length.qer, An
   ggplot(aes(x = mRNA_length)) + geom_histogram(binwidth = 200) + scale_x_continuous(n.breaks = 10) + xlim(c(0,16500)) + theme_bw() + facet_wrap(~mRNA_type, nrow = 2, scales = "free_y") + labs(x = "mRNA length [nucleotides]", title = "Antisense transcripts are generally shorter than their targets, but more numerous", subtitle = "Histogram distribution of transcript length")
 
 ```
-## Comparison in mRNA transcript levels with their Antisense counterpart
 
-```{r}
-filter(qer_sub_diff, (log2FoldChange.qer.amp * log2FoldChange.sub.amp) < 0) %>% ggplot(aes(x = log2FoldChange.sub.amp, y = log2FoldChange.qer.amp)) + geom_point() + labs(title = "Amp") + theme(plot.title = element_text(hjust = 0.5))
-```
+
 
