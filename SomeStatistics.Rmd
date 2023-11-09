@@ -16,15 +16,26 @@ source("1_someStatistics_backgroundScript.R")
 ```
 
 ## Transcript classification
-We took the information of which mRNAs are protein coding from Trinotate, that makes a blastn and tblastn against the uniprot database to find orthologs. Protein coding are all of the mRNAs that had an ortholog in uniprot. 
+We took the information of which mRNAs are protein coding from Transdecoder. More than 400,000 out of the 464,338 transcripts do not code for a detectable peptide. Afterwards, to have an idea of annotation, we use TRinotate that aligns with blastn and tblastn against the uniprot database to find putative orthologs. There is also a small but significant population of transcripts that have a significant match at the RNA level but do not have a significant tblastn alignment (mostly because transdecoder could not find the corresponding ORF). We assume for now that these are either artifactual or non-functional isoforms and are marked as *"nonsense"*. Later, if a gene has at least one nonsense transcript, and no transcripts with coding potential, we will classify this gene as a pseudogene.
 
 ```{r Coding and non coding transcripts, echo=FALSE, message=FALSE, warning=FALSE}
 data_donut <- transcript_classification %>% ungroup %>% group_by(rna_type) %>%
-  summarise(rna_type = unique(rna_type), number = n()) %>%
-  mutate(category = case_match(rna_type, "Nonsense" ~ "Nonsense", "nonCoding" ~ "Non coding", .default = "Peptide"), label = paste0(category, "\n value: ", number), ymax = cumsum(number), ymin = lag(ymax, default = 0))
+    summarise(rna_type = unique(rna_type), number = n()) %>%
+    mutate(category = case_match(rna_type, "Nonsense" ~ "Nonsense", "nonCoding" ~ "Non coding", .default = "Peptide"), label = paste0(category, "\n n = ", number), ymax = cumsum(number), ymin = lag(ymax, default = 0))
 
-transcript_classification %>% ggplot(aes(x = 3.5, fill = rna_type)) + geom_bar() + coord_polar(theta = "y") + xlim(c(2,4)) + geom_label(data = data_donut, x =3.5, aes(y = number, label = label)) + theme_void()
+transcript_classification %>% ggplot(aes(x = 3.5, fill = rna_type)) + geom_bar() + xlim(c(2,4)) + geom_label(y = c(60000, 12500, 200000), data = data_donut, x =4.1, aes(label = label)) + theme_void() + coord_polar(theta = "y") + theme(legend.position = "none") + labs(title = "The vast majority of transcripts do not code for peptides")
 
+```
+### Annotation guided more granular classification of transcripts
+
+We have already classified non-coding transcripts using the Transdecoder annotation as support: transcripts that could be annotated just as non-coding are classified as non-sense, because they do show some similarity to uniprot transcripts, even when they do not seem to code for a peptide. The previous classification was done at the transcript level. The next classification, pertains to peptides and so, will only apply to the 60,247 transcripts for which transdecoder found at least one peptide. The relationship between transcripts and peptides is one-to-many, though, because one transcript has six possible reading frames and could even code for more than one peptide in the same reading frame. This is reflected in the 70,572 unique prot_id's from the transdecoder file.
+
+```{r coding transcripts, echo=FALSE, message=FALSE, warning=FALSE}
+data_donut <- trinotate %>% filter(!is.na(peptide_type)) %>% group_by(peptide_type) %>%
+    summarise(peptide_type = unique(peptide_type), number = n()) %>%
+    mutate(label = paste0(peptide_type, "\n n = ", number), ymax = cumsum(number), ymin = lag(ymax, default = 0))
+
+trinotate %>% filter(!is.na(peptide_type)) %>% ggplot(aes(x = 3.5, fill = peptide_type)) + geom_bar(position = position_stack(reverse = TRUE)) + coord_polar(theta = "y") + xlim(c(2,4)) + theme_void() + geom_label(data=data_donut, aes(y = (ymax + ymin)/2, x = 3.5, label = label)) + theme(legend.position = "null") + labs(title = "Sizeable fractions of peptides on the wrong strand and \n peptides not present in uniprot", subtitle = "Peptide-wise classification of the ORFs predicted by transdecoder")
 ```
 
 

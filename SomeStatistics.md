@@ -19,6 +19,22 @@ transcript, and no transcripts with coding potential, we will classify
 this gene as a pseudogene.
 
 ![](SomeStatistics_files/figure-gfm/Coding%20and%20non%20coding%20transcripts-1.png)<!-- -->
+\### Annotation guided more granular classification of transcripts
+
+We have already classified non-coding transcripts using the Transdecoder
+annotation as support: transcripts that could be annotated just as
+non-coding are classified as non-sense, because they do show some
+similarity to uniprot transcripts, even when they do not seem to code
+for a peptide. The previous classification was done at the transcript
+level. The next classification, pertains to peptides and so, will only
+apply to the 60,247 transcripts for which transdecoder found at least
+one peptide. The relationship between transcripts and peptides is
+one-to-many, though, because one transcript has six possible reading
+frames and could even code for more than one peptide in the same reading
+frame. This is reflected in the 70,572 unique prot_id’s from the
+transdecoder file.
+
+![](SomeStatistics_files/figure-gfm/coding%20transcripts-1.png)<!-- -->
 
 ## Length distribution of transcripts
 
