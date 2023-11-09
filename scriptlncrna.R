@@ -8,10 +8,10 @@ library(stringr)
 library(ggplot2)
 library(here)
 directorio <- here()
-dlaevis_assembly_uniprt <- read_delim(paste0(directorio,"/data/dlaevis_assembly_uniprt.csv", 
+dlaevis_assembly_uniprt <- read_delim(paste0(directorio,"/data/dlaevis_assembly_uniprt.csv"), 
                                       delim = "\t", escape_double = FALSE, 
                                       col_types = cols(length = col_integer()), 
-                                      trim_ws = TRUE))
+                                      trim_ws = TRUE)
                                       
 results_full_amp_degs <- read_csv(paste0(directorio,"/data/results_full_amp_degs.csv"), 
                                   col_types = cols(...8 = col_skip()))
@@ -91,9 +91,8 @@ prot<- unique(prot)
 prot<- filter(prot, prot_start != 0)
 prot<- filter(prot, prot_end != 0)
 
-# Strings negativas generalmente tienen NA en BlastP
-# filter(dlaevis_assembly_uniprt, str_detect(prot_coords, "\\[-\\]"))
-# juntar las tablas de prot_coords (end y start), con las coordenadas de matches de query y en sentido positivo
+# Strings antisentido generalmente tienen NA en BlastP
+# juntar prot_coords (end y start), con las coordenadas de matches de query y en sentido positivo
 prot <- left_join(select(filtrados, qseqid, sseqid, length, qstart, qend,sstart, send), prot, by = join_by("qseqid" == "transcript_id")) %>%  filter(prot_start < prot_end)
 
 # el caso 3, incluye tambien a los del caso 5, y el 4 incluye tambien a los del caso 6, por eso el caso 5 y 6 van primero
@@ -109,7 +108,7 @@ prot$caso <- case_when(
 #descripción de casos
 #caso 1 El match cae dentro del CDS
 #caso 2 El match es tan largo que cae tanto en 5UTR, CDS y 3UTR
-#caso 3 El match empieza en la zona 5UTR
+#caso 3 El match empieza en la zona 5UTR y termina en cds
 #caso 4 El match empieza en la zona de CDS y termina en 3UTR
 #caso 5 El match es en la zona 5UTR
 #caso 6 El match es en la zona 3UTR
@@ -141,5 +140,46 @@ prot %>% group_by(qseqid) %>% summarise(Median_3p = median(qstart))
 #prot %>% group_by(qseqid) %>% summarise(No = n(),suma = sum(length), total = unique(total_length)) %>% ggplot(aes(x = total, y = suma)) + geom_point() + labs(title = "Grafica") + theme(plot.title = element_text(hjust = 0.5))
 #prot %>% group_by(qseqid) %>% summarise(No = n(),mean = mean(length), total = unique(total_length)) %>% ggplot(aes(x = total, y = mean)) + geom_point() + labs(title = "Grafica") + theme(plot.title = element_text(hjust = 0.5))
 
-#anotaciones
-# protstart - qstat / si da negativo es que emepzo antes de que la proteina comience a codificar
+#Cambiar el tipo de dato de double a integer
+#columnas <- c("length",qstart","qend","prot_start","prot_end","CDS_length","total_length","UTR_3")
+#prot[columnas] <- lapply(prot[columnas], as.integer)
+
+
+#Lógica
+# CDS = 100% , 5UTR = 100% , 3UTR = 
+#caso 1 CDS = 100% length?% 
+#caso 2 
+#caso 3 prot end - qstart = x% en CDS, y% en 3UTR total lenght- prot end = 100%, prot end - qend = y%, 
+#caso 4 
+#caso 5 100% del match en zona 5utr
+#caso 6 100% del match en la zona 3utr
+#Script
+
+prot$UTR5porcentaje <- case_when(
+  prot$caso == "caso 1" ~ 0,
+  prot$caso == "caso 2" ~ ((prot$prot_start-prot$qstart)*100/(prot$prot_start-1)),
+  prot$caso == "caso 3" ~ ((prot$prot_start-prot$qstart)*100/(prot$prot_start-1)),
+  prot$caso == "caso 4" ~ 0,
+  prot$caso == "caso 5" ~ 100,
+  prot$caso == "caso 6" ~ 0,
+)
+
+prot$CDSporcentaje <- case_when(
+  prot$caso == "caso 1" ~ (prot$length*100/prot$CDS_length),
+  prot$caso == "caso 2" ~ 100,
+  prot$caso == "caso 3" ~ ((prot$qend-prot$prot_start)*100/prot$CDS_length),
+  prot$caso == "caso 4" ~ ((prot$prot_end-prot$qstart)*100/prot$CDS_length),
+  prot$caso == "caso 5" ~ 0,
+  prot$caso == "caso 6" ~ 0,
+)
+
+
+
+prot$UTR3porcentaje <- case_when(
+  prot$caso == "caso 1" ~ 0,
+  prot$caso == "caso 2" ~ ((prot$qend-prot$prot_end)*100/prot$UTR_3),
+  prot$caso == "caso 3" ~ 0,
+  prot$caso == "caso 4" ~ ((prot$qend-prot$prot_end)*100/prot$UTR_3),
+  prot$caso == "caso 5" ~ 0,
+  prot$caso == "caso 6" ~ 100,
+)
