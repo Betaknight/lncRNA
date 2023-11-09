@@ -51,13 +51,6 @@ ampirr <- left_join(ampirr, ss_analysisAMP, by = join_by("sseqid" == "transcript
 ampirr <- left_join(ampirr, ss_analysisIrr, by = join_by("sseqid" == "transcript_id"), suffix = c(".amp.target", ".irr.target"))
 ampirr <- ampirr %>% mutate(diff_ratio_ampirr.target = ((plus_strand_1stReads.amp.target + plus_strand_1stReads.irr.target) - (minus_strand_1stReads.amp.target + minus_strand_1stReads.irr.target))/(total_reads.amp.target + total_reads.irr.target))
 
-#Histogram of the ratio of reads on the positive and the negative strand (ideal is -1)
-ggplot(data = ampirr, aes(x = diff_ratio_ampirr.qer)) + geom_histogram() + 
-  labs(x = "Difference ratio of reads", title = "Query mRNAs show the expected predominance of minus strand reads", subtitle = "Difference ratio taking into account both experiments", y = "Number of transcripts") + theme(plot.title = element_text(hjust = 0.5)) + xlim(-1,1)
-ggplot(data = ampirr, aes(x = diff_ratio_ampirr.target)) + geom_histogram() + 
-  labs(x = "Difference ratio of reads", title = "Antisense mRNAs show an even distribution of read strand", subtitle = "Difference ratio taking into account both experiments", y = "Number of transcripts") + theme(plot.title = element_text(hjust = 0.5)) + xlim(-1,1)
-
-
 #length of mRNAs
 longitudes <- read_table(paste0(directorio,"/data/longitudes.txt"), 
                          col_names = FALSE)
@@ -86,7 +79,6 @@ left_join(select(results_full_irr_degs, transcript_id, log2FoldChange, padj), by
 
 #query = RNA protein coding
 #target antisense transcript
-
 
 #Creacion de un DF con el inicio y fin de la prot
 prot <- select(dlaevis_assembly_uniprt, transcript_id, prot_coords) %>% separate(prot_coords, c("prot_start", "prot_end"), sep = "-") %>% mutate(prot_end = str_remove(prot_end, "[+]"))
@@ -141,11 +133,13 @@ colnames(prot)[13] <- "UTR_3"
 #prot %>% group_by(qseqid) %>% summarise(no = n()) %>%  View
 #prot %>% group_by(qseqid) %>% summarise(no = n()) %>%  left_join(select(prot,qseqid, total_length), by = "qseqid") %>%  View
 
-#prot %>% group_by(qseqid) %>% summarise(Median_3p = median(qstart))
-#prot %>% summarise(Median_3p = median(qstart))
+prot %>% group_by(qseqid) %>% summarise(Median_3p = median(qstart))
 #prot %>% group_by(qseqid) %>% summarise(No = n(), suma = sum(length), total = unique(total_length))
 #prot %>% group_by(qseqid) %>% summarise(No = n(), suma = sum(length), total = unique(caso))
 #prot %>% group_by(qseqid) %>% summarise(No = n(), total = unique(total_length)) %>% ggplot(aes(x = No, y = total)) + geom_point() + labs(title = "Grafica") + theme(plot.title = element_text(hjust = 0.5))
 #prot %>% group_by(qseqid) %>% summarise(No = n(), total = unique(total_length)) %>% ggplot(aes(x = total, y = No)) + geom_point() + labs(title = "Grafica") + theme(plot.title = element_text(hjust = 0.5))
 #prot %>% group_by(qseqid) %>% summarise(No = n(),suma = sum(length), total = unique(total_length)) %>% ggplot(aes(x = total, y = suma)) + geom_point() + labs(title = "Grafica") + theme(plot.title = element_text(hjust = 0.5))
 #prot %>% group_by(qseqid) %>% summarise(No = n(),mean = mean(length), total = unique(total_length)) %>% ggplot(aes(x = total, y = mean)) + geom_point() + labs(title = "Grafica") + theme(plot.title = element_text(hjust = 0.5))
+
+#anotaciones
+# protstart - qstat / si da negativo es que emepzo antes de que la proteina comience a codificar
