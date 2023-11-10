@@ -173,8 +173,6 @@ prot$CDSporcentaje <- case_when(
   prot$caso == "caso 6" ~ 0,
 )
 
-
-
 prot$UTR3porcentaje <- case_when(
   prot$caso == "caso 1" ~ 0,
   prot$caso == "caso 2" ~ ((prot$qend-prot$prot_end)*100/prot$UTR_3),
