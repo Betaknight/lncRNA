@@ -24,7 +24,7 @@ directorio <- here()
 source("scriptlncrna.R")
 ```
 
-You can check some preliminary analysis and summary statistics [here](./SomeStatistics.md)
+You can check some preliminary analysis and summary statistics [here](./SomeStatistics.md)  
 
 
 Los histogramas son respecto al dif-ratio de la suma de amp y irr para querry y target, la maypría de transcritos tienen 
@@ -51,4 +51,43 @@ filter(qer_sub_diff, (log2FoldChange.qer.irr * log2FoldChange.sub.irr) < 0) %>% 
 
 ```
 
+Descripción de casos:
+caso 1 El alineamiento es solamente dentro del CDS
+caso 2 El alineamiento es tan largo que cae en las 3 zonas (5UTR, CDS y 3UTR)
+caso 3 El alineamiento empieza en la zona 5UTR y termina dentro de CDS
+caso 4 El alineamiento empieza en la zona de CDS y termina en 3UTR
+caso 5 El alineamiento es solamente en la zona 5UTR
+caso 6 El alineamiento es solamente en la zona 3UTR
 
+```{r warning=FALSE}
+prot %>% ggplot(aes(x = caso)) + geom_histogram(stat = "count") + labs(title = "La mayoría de alineamientos son solamente en la zona 3UTR" ,subtitle = "Distribución de casos")
+```
+
+#Código para histogramas
+Histogramas
+Cuando el alineamiento es en la zona de CDS, la mayoría de alineamientos en la zona de CDS se alinea con el 50% del 
+```{r warning=FALSE}
+prot %>% filter(CDSporcentaje>0) %>%   ggplot(aes(x = CDSporcentaje)) + geom_histogram()
+```
+
+Cuando el alineamiento es en la zona 3UTR, la gran mayoría de veces se alinea con todo el largo del área 3UTR
+```{r warning=FALSE}
+prot %>% filter(UTR3porcentaje>0) %>%   ggplot(aes(x = UTR3porcentaje)) + geom_histogram()
+```
+
+Cuando el alineamiento es en la zona 5UTR, la mayoría de veces el alineamiento es en todo el largo del área 5UTR
+```{r warning=FALSE}
+prot %>% filter(UTR5porcentaje>0) %>%   ggplot(aes(x = UTR5porcentaje)) + geom_histogram()
+```
+
+Correlación positiva para el caso 1 (el alineamiento es únicamente en la zona CDS)
+	Pearson's product-moment correlation
+
+data:  x$log2FoldChange.sub.amp and x$log2FoldChange.qer.amp
+t = 22.313, df = 21331, p-value < 2.2e-16
+alternative hypothesis: true correlation is greater than 0
+95 percent confidence interval:
+ 0.1400006 1.0000000
+sample estimates:
+      cor 
+0.1510244 

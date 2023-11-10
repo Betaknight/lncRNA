@@ -118,7 +118,7 @@ prot$caso <- case_when(
 #filter(prot, cprot_end != 0) %>%  View
 #filter(prot, prot_end != 0) %>%  View
 
-prot <- mutate(prot, prot_end - prot_start)
+prot <- mutate(prot, prot_end - prot_start) # + 1 para que coincida
 colnames(prot)[11] <- "CDS_length"
 prot <- left_join(prot, longitudes, by = join_by("qseqid" == "transcript_id"))
 prot <- mutate(prot, total_length - prot_end)
@@ -129,12 +129,12 @@ colnames(prot)[13] <- "UTR_3"
 #select(prot, qseqid, total_length) %>% unique() %>% ggplot(aes(x = total_length)) + geom_histogram() + labs(x = "bp", title = "Total_length") + theme(plot.title = element_text(hjust = 0.5))
 
 
-#prot %>% group_by(qseqid) %>% summarise(no = n()) %>%  View
+prot %>% group_by(qseqid) %>%  View
 #prot %>% group_by(qseqid) %>% summarise(no = n()) %>%  left_join(select(prot,qseqid, total_length), by = "qseqid") %>%  View
 
-prot %>% group_by(qseqid) %>% summarise(Median_3p = median(qstart))
+#prot %>% group_by(qseqid) %>% summarise(Median_3p = median(qstart))
 #prot %>% group_by(qseqid) %>% summarise(No = n(), suma = sum(length), total = unique(total_length))
-#prot %>% group_by(qseqid) %>% summarise(No = n(), suma = sum(length), total = unique(caso))
+prot %>% group_by(caso) %>% summarise(No = n(), suma = sum(length), total = unique(caso))
 #prot %>% group_by(qseqid) %>% summarise(No = n(), total = unique(total_length)) %>% ggplot(aes(x = No, y = total)) + geom_point() + labs(title = "Grafica") + theme(plot.title = element_text(hjust = 0.5))
 #prot %>% group_by(qseqid) %>% summarise(No = n(), total = unique(total_length)) %>% ggplot(aes(x = total, y = No)) + geom_point() + labs(title = "Grafica") + theme(plot.title = element_text(hjust = 0.5))
 #prot %>% group_by(qseqid) %>% summarise(No = n(),suma = sum(length), total = unique(total_length)) %>% ggplot(aes(x = total, y = suma)) + geom_point() + labs(title = "Grafica") + theme(plot.title = element_text(hjust = 0.5))
@@ -146,8 +146,8 @@ prot %>% group_by(qseqid) %>% summarise(Median_3p = median(qstart))
 
 
 #Lógica
-# CDS = 100% , 5UTR = 100% , 3UTR = 
-#caso 1 CDS = 100% length?% 
+# Porcentaje de la zona CDS que esta alineada con el transcrito antisentido
+#caso 1 CDS = 100% length?% , 
 #caso 2 
 #caso 3 prot end - qstart = x% en CDS, y% en 3UTR total lenght- prot end = 100%, prot end - qend = y%, 
 #caso 4 
@@ -181,3 +181,12 @@ prot$UTR3porcentaje <- case_when(
   prot$caso == "caso 5" ~ 0,
   prot$caso == "caso 6" ~ 100,
 )
+
+left_join(select(prot,qseqid,sseqid,caso), qer_sub_diff, by = "qseqid") %>% filter(caso == "caso 6") %>% 
+ggplot(aes(x = log2FoldChange.sub.amp, y = log2FoldChange.qer.amp)) + geom_point() + labs(title = "DEG relationship between Query and Subject" , subtitle = "DEG Amp", x = "log2foldchange antisense transcript" , y = "log2foldchange RNA protein coding") + theme(plot.title = element_text(hjust = 0.5))
+
+x <- left_join(select(prot,qseqid,sseqid,caso), qer_sub_diff, by = "qseqid") %>% filter(caso == "caso 6")
+cor(x$log2FoldChange.sub.amp, x$log2FoldChange.qer.amp, use = "pairwise.complete.obs")
+cor.test(x$log2FoldChange.sub.amp, x$log2FoldChange.qer.amp,alternative = "greater", use = "pairwise.complete.obs")
+?cor.test
+prot %>% ggplot(aes(x = caso)) + geom_histogram()
