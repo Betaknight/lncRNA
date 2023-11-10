@@ -6,10 +6,18 @@ Bruno
 Librerias
 
 You can check some preliminary analysis and summary statistics
+<<<<<<< HEAD
 [here](./SomeStatistics.md)
 
 Los histogramas son respecto al dif-ratio de la suma de amp y irr para
 querry y target, la maypría de transcritos tienen
+=======
+[here](./SomeStatistics.md) 
+
+Union de las columnas: plus, minus, total
+strands y diff ratio de AMP e IRR con query y target Los histogramas son
+respecto al dif-ratio de la suma de amp y irr para querry y target
+>>>>>>> 74c0a1b2517d31a935b5ffcb2abf503cc7b6b4b9
 
 ``` r
 #Histogram of the ratio of reads on the positive and the negative strand (ideal is -1)

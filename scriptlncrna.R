@@ -128,7 +128,7 @@ colnames(prot)[13] <- "UTR_3"
 #largo del 5UTR = inicio -1
 #select(prot, qseqid, total_length) %>% unique() %>% ggplot(aes(x = total_length)) + geom_histogram() + labs(x = "bp", title = "Total_length") + theme(plot.title = element_text(hjust = 0.5))
 
-
+ 
 prot %>% group_by(qseqid) %>%  View
 #prot %>% group_by(qseqid) %>% summarise(no = n()) %>%  left_join(select(prot,qseqid, total_length), by = "qseqid") %>%  View
 
