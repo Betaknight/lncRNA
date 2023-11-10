@@ -1,6 +1,7 @@
 ###Must be run after scriptlncRNA.R
 library(janitor)
 
+# Load and clean ----------------------------------------------------------
 trinotate <- read_delim(paste0(directorio, "/data/trinotate_annotation_report.xls"), 
                         delim = "\t", escape_double = FALSE, 
                         na = ".", trim_ws = TRUE)
@@ -11,6 +12,7 @@ trinotate <- clean_names(trinotate) %>% remove_empty()
 trinotate <- trinotate %>% separate_wider_delim(prot_coords, delim = "[", names = c("prot_coordinates", "strand")) %>%
   mutate(strand = str_remove(strand, "]"))
 
+# Classifications for donuts charts ----------------------------------------
 #Classification of peptides
 trinotate <- trinotate %>% mutate(peptide_type = case_when(
   strand == "-" ~ "Wrong strand",
@@ -54,3 +56,9 @@ gene_classification <- transcript_classification %>% group_by(number_gene_id) %>
   TRUE ~ "OTHER"
 )
 )
+
+# Length distribution of transcripts -------------------------------------
+#Simple Joining dataframes to get transcript length
+
+transcript_classification <- inner_join(transcript_classification, longitudes)
+
