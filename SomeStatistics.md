@@ -111,6 +111,31 @@ than 400 nucleotides.
 
 ![](SomeStatistics_files/figure-gfm/log%20length%20by%20coding%20potential-1.png)<!-- -->
 
+By just plotting the length of the ORF containing transcripts we see an
+interesting pattern: the swissprot annotated distribution now loses the
+bimodality and looks very nicely bell shaped, if a bit skewed. We also
+see that most transcripts classified as truncated have a typical length
+(similar to the swissprot matching ones). These transcripts are the ones
+that have a similarity at the RNA level but the protein does not. This
+raises the confidence that “truncated” transcripts correspond to
+pseudogenes (“truncated” referring to the predicted ORF). Although the
+“Unnanotated” ORF containg transcripts are exciting, the length
+distribution shows that they tend to be shorter, and so care should also
+be taken to ensure that they are truly unannotated and not just to short
+to be matched to a known protein/transcript.
+
+``` r
+filter(trinotate, !is.na(prot_id)) %>% left_join(longitudes) %>% ggplot() + geom_histogram(aes(x = log(total_length))) + theme_bw() + labs(x = "log(transcript length) [nucleotides]", title = "Almost all ORF containing transcripts are longer than the median", subtitle = "Histogram of log transformed transcript length") + geom_vline(aes(xintercept = log(median(total_length))), color = "red") + facet_wrap(~peptide_type, nrow = 2, scales = "free_y")
+```
+
+![](SomeStatistics_files/figure-gfm/log%20length%20of%20peptide%20containing%20orfs,%20with%20annotations-1.png)<!-- -->
+
+## Length distribution of ORFs
+
+Now the obvious step is to check the distribution of ORFs
+
+![](SomeStatistics_files/figure-gfm/scatter%20side%20density%20mrna%20vs%20orf-1.png)<!-- -->
+
 ## Antisense transcripts
 
 These sequences were then aligned back to the whole transcriptome with
