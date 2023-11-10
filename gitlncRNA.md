@@ -67,7 +67,9 @@ source("scriptlncrna.R")
     ## * `` -> `...8`
 
 You can check some preliminary analysis and summary statistics
-[here](./SomeStatistics.md) Union de las columnas: plus, minus, total
+[here](./SomeStatistics.md) 
+
+Union de las columnas: plus, minus, total
 strands y diff ratio de AMP e IRR con query y target Los histogramas son
 respecto al dif-ratio de la suma de amp y irr para querry y target
 
