@@ -17,7 +17,7 @@ source("1_someStatistics_backgroundScript.R")
 ```
 
 ## Transcript classification
-We took the information of which mRNAs are protein coding from Transdecoder. More than 400,000 out of the 464,338 transcripts do not code for a detectable peptide. Afterwards, to have an idea of annotation, we use TRinotate that aligns with blastn and tblastn against the uniprot database to find putative orthologs. There is also a small but significant population of transcripts that have a significant match at the RNA level but do not have a significant tblastn alignment (mostly because transdecoder could not find the corresponding ORF). We assume for now that these are either artifactual or non-functional isoforms and are marked as *"nonsense"*. Later, if a gene has at least one nonsense transcript, and no transcripts with coding potential, we will classify this gene as a pseudogene.
+We took the information of which mRNAs are protein coding from Transdecoder. More than 400,000 out of the 464,338 transcripts do not code for a detectable peptide. Afterwards, to have an idea of annotation, we use TRinotate that aligns with blastn and tblastn against the uniprot database to find putative orthologs. There is also a small but significant population of transcripts that have a significant match at the RNA level but for which transdecoder could not find a long enough ORF. We assume for now that these are either artifactual or non-functional isoforms and are marked as *"nonsense"*. Later, if a gene has at least one nonsense transcript, and no transcripts with coding potential, we will classify this gene as a pseudogene.
 
 ```{r Coding and non coding transcripts, echo=FALSE, message=FALSE, warning=FALSE}
 data_donut <- transcript_classification %>% ungroup %>% group_by(rna_type) %>%
@@ -79,6 +79,12 @@ To visualize this distribution, we log transform the data (exp = e)
 longitudes %>% ggplot() + geom_histogram(aes(x = log(total_length))) + theme_bw() + labs(x = "log(transcript length) [nucleotides]", title = "The distribution of transcript length is heavily righ skewed", subtitle = "Histogram of log transformed transfript length")
 ```
 
+Remember that our first classification was, transcript-wise by their coding potential, differentiating the peptide producing from the non-coding, and a third smaller group of transcripts that have a blastx hit but  do not contain an ORF long enough to match by tblastn. There is a very clear difference in the length distribution of transcripts producing a peptide in transdecoder: almost all of them are longer than the transcriptome median (log(389) = 5.95). There is also a sort of bimodal distribution in the log transformed length data for the ORF containing transcripts that could be explored later. Overall, we can conclude that a good portion of the non-coding transcriptome is shorter than 400 nucleotides.
+
+
+```{r log length by coding potential, fig.height=6, fig.width=12, echo=FALSE, message=FALSE, warning=FALSE}
+transcript_classification %>% ggplot() + geom_histogram(aes(x = log(total_length))) + theme_bw() + labs(x = "log(transcript length) [nucleotides]", title = "Almost all ORF containing transcripts are longer than the median", subtitle = "Histogram of log transformed transcript length") + geom_vline(aes(xintercept = log(median(total_length))), color = "red") + facet_wrap(~rna_type, scales = "free_y")
+```
 
 
 
@@ -108,7 +114,7 @@ ampirr %>% transmute(qseqid, sseqid, Protein_coding_mRNAs = total_length.qer, An
   #This operation is to chose the transcript id from the two seqid columns
   transmute(transcript_id = if_else(mRNA_type == "Protein_coding_mRNAs", qseqid, sseqid), mRNA_type, mRNA_length) %>% unique() %>% 
   #now you can plot
-  ggplot(aes(x = mRNA_length)) + geom_histogram(binwidth = 200) + scale_x_continuous(n.breaks = 10) + xlim(c(0,16500)) + theme_bw() + facet_wrap(~mRNA_type, nrow = 2, scales = "free_y") + labs(x = "mRNA length [nucleotides]", title = "Antisense transcripts are generally shorter than their targets, but more numerous", subtitle = "Histogram distribution of transcript length")
+  ggplot(aes(x = log(mRNA_length))) + geom_histogram() + scale_x_continuous(n.breaks = 10) + theme_bw() + facet_wrap(~mRNA_type, nrow = 2, scales = "free_y") + labs(x = "log of mRNA length [nucleotides]", title = "Antisense transcripts are generally shorter than their targets, but more numerous", subtitle = "Histogram distribution of transcript length")
 
 ```
 

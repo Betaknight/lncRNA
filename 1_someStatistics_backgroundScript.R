@@ -1,6 +1,5 @@
 ###Must be run after scriptlncRNA.R
 library(janitor)
-library(readr)
 
 # Load and clean ----------------------------------------------------------
 trinotate <- read_delim(paste0(directorio, "/data/trinotate_annotation_report.xls"), 

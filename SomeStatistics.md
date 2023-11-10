@@ -11,12 +11,11 @@ code for a detectable peptide. Afterwards, to have an idea of
 annotation, we use TRinotate that aligns with blastn and tblastn against
 the uniprot database to find putative orthologs. There is also a small
 but significant population of transcripts that have a significant match
-at the RNA level but do not have a significant tblastn alignment (mostly
-because transdecoder could not find the corresponding ORF). We assume
-for now that these are either artifactual or non-functional isoforms and
-are marked as *“nonsense”*. Later, if a gene has at least one nonsense
-transcript, and no transcripts with coding potential, we will classify
-this gene as a pseudogene.
+at the RNA level but for which transdecoder could not find a long enough
+ORF. We assume for now that these are either artifactual or
+non-functional isoforms and are marked as *“nonsense”*. Later, if a gene
+has at least one nonsense transcript, and no transcripts with coding
+potential, we will classify this gene as a pseudogene.
 
 ![](SomeStatistics_files/figure-gfm/Coding%20and%20non%20coding%20transcripts-1.png)<!-- -->
 
@@ -59,11 +58,60 @@ wait for the gene-level integration before making this call.
 
 First, because of the one-to-many relationship between transcripts and
 peptides, we made a further classification of transcripts according to
-the peptides they produce.
+the peptides they produce. A transcript can code for many peptides, but
+we classify a transcript as *Swissprot* annotated if at least one of the
+peptides has a valid top ortholog from the SWissprot database. Next, a
+transcript is annotated as either Truncated, Unnanotated or Wrong strand
+if any of the peptides they produce belong to one of these categories
+and none of the peptides they produce belong to the others. Transcripts
+that produce a combination of these are not shown.
+
+Next, we group transcripts by their Trinity assembly “gene” and classify
+them as: - “Swissprot” genes if **any** of the transcripts produce a
+peptide with a Swissprot ortholog. - We classified them as *Unnanotated*
+if **all** of the transcripts code for an unnanotated protein (this
+might be an underestimation). - We classify a transcript as *Non coding*
+if **all** of their transcripts are non coding - We classify a
+transcript as pseudogene if **all** of their transcripts belong to
+either non coding, truncated or
 
 ![](SomeStatistics_files/figure-gfm/gene%20level-1.png)<!-- -->
 
 ## Length distribution of transcripts
+
+We will now go into length distribution of transcripts. As stated
+before, there are ~464,000 transcripts. By looking at a summary, we
+already see that the distribution is heavily right skewed. The minimum
+size is 169, and the maximum is 30kb (Spoiler: this is the Titin gene,
+the longest known protein in humans). Still, the third quartile is 687.
+That is, 75% of transcripts are shorter than the mean.
+
+``` r
+summary(longitudes$total_length)
+```
+
+    ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+    ##   169.0   270.0   385.0   696.2   687.0 30666.0
+
+To visualize this distribution, we log transform the data (exp = e)
+
+![](SomeStatistics_files/figure-gfm/histogram%20whole%20transcriptome-1.png)<!-- -->
+
+Remember that our first classification was, transcript-wise by their
+coding potential, differentiating the peptide producing from the
+non-coding, and a third smaller group of transcripts that have a blastx
+hit but do not contain an ORF long enough to match by tblastn. There is
+a very clear difference in the length distribution of transcripts
+producing a peptide in transdecoder: almost all of them are longer than
+the transcriptome median (log(389) = 5.95). There is also a sort of
+bimodal distribution in the log transformed length data for the ORF
+containing transcripts that could be explored later. Overall, we can
+conclude that a good portion of the non-coding transcriptome is shorter
+than 400 nucleotides.
+
+![](SomeStatistics_files/figure-gfm/log%20length%20by%20coding%20potential-1.png)<!-- -->
+
+## Antisense transcripts
 
 These sequences were then aligned back to the whole transcriptome with
 blastn. The resulting alignments were filtered to be plus/minus
@@ -112,7 +160,7 @@ ampirr %>% transmute(qseqid, sseqid, Protein_coding_mRNAs = total_length.qer, An
   #This operation is to chose the transcript id from the two seqid columns
   transmute(transcript_id = if_else(mRNA_type == "Protein_coding_mRNAs", qseqid, sseqid), mRNA_type, mRNA_length) %>% unique() %>% 
   #now you can plot
-  ggplot(aes(x = mRNA_length)) + geom_histogram(binwidth = 200) + scale_x_continuous(n.breaks = 10) + xlim(c(0,16500)) + theme_bw() + facet_wrap(~mRNA_type, nrow = 2, scales = "free_y") + labs(x = "mRNA length [nucleotides]", title = "Antisense transcripts are generally shorter than their targets, but more numerous", subtitle = "Histogram distribution of transcript length")
+  ggplot(aes(x = log(mRNA_length))) + geom_histogram() + scale_x_continuous(n.breaks = 10) + theme_bw() + facet_wrap(~mRNA_type, nrow = 2, scales = "free_y") + labs(x = "log of mRNA length [nucleotides]", title = "Antisense transcripts are generally shorter than their targets, but more numerous", subtitle = "Histogram distribution of transcript length")
 ```
 
 ![](SomeStatistics_files/figure-gfm/Grafica%20de%20longitud-1.png)<!-- -->
