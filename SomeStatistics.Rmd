@@ -32,6 +32,7 @@ transcript_classification %>% ggplot(aes(x = 3.5, fill = rna_type)) + geom_bar()
 ### Annotation guided more granular classification of transcripts
 
 We have already classified non-coding transcripts using the Transdecoder annotation as support: transcripts that could be annotated just as non-coding are classified as non-sense, because they do show some similarity to uniprot transcripts, even when they do not seem to code for a peptide. The previous classification was done at the transcript level. The next classification, pertains to peptides and so, will only apply to the 60,247 transcripts for which transdecoder found at least one peptide. The relationship between transcripts and peptides is one-to-many, though, because one transcript has six possible reading frames and could even code for more than one peptide in the same reading frame. This is reflected in the 70,572 unique prot_id's from the transdecoder file.
+#ANOTACION "...The next classification, pertains to peptides and so, will only apply to the 60,247 transcripts..." Yo usaría "pertaining" en lugarde "petains" pero checando con Google bard ambas son correctas. Google bard sugiere esto para hacerlo mas formal: The next classification, which pertains to peptides, will only apply to the 60,247 transcripts.
 
 ```{r coding transcripts, echo=FALSE, message=FALSE, warning=FALSE}
 data_donut <- trinotate %>% filter(!is.na(peptide_type)) %>% group_by(peptide_type) %>%
@@ -81,6 +82,7 @@ longitudes %>% ggplot() + geom_histogram(aes(x = log(total_length))) + theme_bw(
 ```
 
 Remember that our first classification was, transcript-wise by their coding potential, differentiating the peptide producing from the non-coding, and a third smaller group of transcripts that have a blastx hit but  do not contain an ORF long enough to match by tblastn. There is a very clear difference in the length distribution of transcripts producing a peptide in transdecoder: almost all of them are longer than the transcriptome median (log(389) = 5.95). There is also a sort of bimodal distribution in the log transformed length data for the ORF containing transcripts that could be explored later. Overall, we can conclude that a good portion of the non-coding transcriptome is shorter than 400 nucleotides.
+#ANOTACION Creo que el inicio de este párrafo hay que checarlo.
 
 
 ```{r log length by coding potential, fig.height=6, fig.width=12, echo=FALSE, message=FALSE, warning=FALSE}
