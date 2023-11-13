@@ -77,7 +77,7 @@ summary(longitudes$total_length)
 To visualize this distribution, we log transform the data (exp = e)
 
 ```{r histogram whole transcriptome, echo=FALSE, message=FALSE, warning=FALSE}
-longitudes %>% ggplot() + geom_histogram(aes(x = log(total_length))) + theme_bw() + labs(x = "log(transcript length) [nucleotides]", title = "The distribution of transcript length is heavily righ skewed", subtitle = "Histogram of log transformed transfript length")
+longitudes %>% ggplot() + geom_histogram(aes(x = log(total_length))) + theme_bw() + labs(x = "log(transcript length) [nucleotides]", title = "The distribution of transcript length is heavily right skewed", subtitle = "Histogram of log transformed transfript length")
 ```
 
 Remember that our first classification was, transcript-wise by their coding potential, differentiating the peptide producing from the non-coding, and a third smaller group of transcripts that have a blastx hit but  do not contain an ORF long enough to match by tblastn. There is a very clear difference in the length distribution of transcripts producing a peptide in transdecoder: almost all of them are longer than the transcriptome median (log(389) = 5.95). There is also a sort of bimodal distribution in the log transformed length data for the ORF containing transcripts that could be explored later. Overall, we can conclude that a good portion of the non-coding transcriptome is shorter than 400 nucleotides.
