@@ -96,11 +96,9 @@ filter(trinotate, !is.na(prot_id)) %>% left_join(longitudes) %>% ggplot() + geom
 
 ## Length distribution of ORFs
 
-Now the obvious step is to check the distribution of ORFs
+Now the obvious step is to check the distribution of ORFs. First, we look at the distribution of ORF length, dependent on its transcript. When looking only at **Swissprot** annotated ORFs, we see again the lognormal distribution of transcript size (Sommer & Cohen, 1980). The ORF size is not quite lognormal, though, with several peaks in the log-transformed density plot.
 
 ```{r scatter side density mrna vs orf, echo=FALSE, message=FALSE, warning=FALSE}
-trinotate <- filter(trinotate, !is.na(prot_id)) %>% left_join(longitudes) %>% separate(prot_coordinates, sep = "-", into = c("prot_begin", "prot_end")) %>% mutate(prot_length = abs(as.integer(prot_begin) - as.integer(prot_end)))
-
 #blandkplot, just a completely blank space
 blankPlot <- ggplot()+geom_blank(aes(1,1))+
   theme(plot.background = element_blank(), 
@@ -115,16 +113,57 @@ blankPlot <- ggplot()+geom_blank(aes(1,1))+
         axis.ticks = element_blank()
   )
 
-scatterplot <- left_join(trinotate, longitudes) %>% filter(peptide_type == "Swissprot") %>% ggplot() + geom_point(aes(log(total_length), log(prot_length))) + theme_bw() + labs(x = "log of mRNA length", y = "log of ORF length")
+scatterplot <- left_join(trinotate_wORFsize, longitudes) %>% filter(peptide_type == "Swissprot") %>% ggplot() + geom_point(aes(log(total_length), log(prot_length))) + theme_bw() + labs(x = "log of mRNA length", y = "log of ORF length")
 
-xdensity <- left_join(trinotate, longitudes) %>% filter(peptide_type == "Swissprot") %>%  ggplot(aes(log(total_length))) + geom_density() + theme_bw() + labs(title = "length of mRNA vs the length of the transdecoder predicted ORF (nucleotides)")
+xdensity <- left_join(trinotate_wORFsize, longitudes) %>% filter(peptide_type == "Swissprot") %>%  ggplot(aes(log(total_length))) + geom_density() + theme_bw() + labs(title = "length of mRNA vs the length of the transdecoder predicted ORF (Swissprot)")
 
-ydensity <- left_join(trinotate, longitudes) %>% filter(peptide_type == "Swissprot") %>% ggplot(aes(log(prot_length))) + geom_density() + theme_bw() + coord_flip()
+ydensity <- left_join(trinotate_wORFsize, longitudes) %>% filter(peptide_type == "Swissprot") %>% ggplot(aes(log(prot_length))) + geom_density() + theme_bw() + coord_flip()
 
 grid.arrange(xdensity, blankPlot, scatterplot, ydensity, 
              ncol=2, nrow=2, widths=c(4, 1.4), heights=c(1.4, 4))
 ```
 
+
+Now we look at the same scatterplot comparison for the Truncated category. To remember, these were classified as **Truncated** for having similarity at the transcript level but lacking it at the level of the translated protein blast. This suggested that they are pseudogenes, that are still similar to a transcript, but the predicted ORF is not big enough to show enough similarity. 
+
+When looking at the scatterplot below, we have more confidence that this is the case. These transcripts still show a roughly lognormal density distribution, but most points are located well below the diagonal and their density distribution on the y-axis shows that the vast majority of the predicted ORFs are too short (around $e^6 =~ 400$ nucleotides).
+
+```{r truncated ORFs size comparison, echo=FALSE, message=FALSE, warning=FALSE}
+scatterplot <- left_join(trinotate_wORFsize, longitudes) %>% filter(peptide_type == "Truncated") %>% ggplot() + geom_point(aes(log(total_length), log(prot_length))) + theme_bw() + labs(x = "log of mRNA length", y = "log of ORF length")
+
+xdensity <- left_join(trinotate_wORFsize, longitudes) %>% filter(peptide_type == "Truncated") %>%  ggplot(aes(log(total_length))) + geom_density() + theme_bw() + labs(title = "length of mRNA vs the length of the transdecoder predicted ORF (Truncated)")
+
+ydensity <- left_join(trinotate_wORFsize, longitudes) %>% filter(peptide_type == "Truncated") %>% ggplot(aes(log(prot_length))) + geom_density() + theme_bw() + coord_flip()
+
+grid.arrange(xdensity, blankPlot, scatterplot, ydensity, 
+             ncol=2, nrow=2, widths=c(4, 1.4), heights=c(1.4, 4))
+```
+
+The distribution of ORF length for those on the WRONG transcript strand is similar to the "Truncated" category. Most transcripts are below $e^{6.5}$ or around 665 nucleotides. This also supports the idea that these transcripts correspond to assembly artifacts. However, their position on the opposite strand could also indicate that they are antisense transcripts, as we will see later.
+
+```{r Wrong strand ORFs, echo=FALSE, message=FALSE, warning=FALSE}
+scatterplot <- left_join(trinotate_wORFsize, longitudes) %>% filter(peptide_type == "Wrong strand") %>% ggplot() + geom_point(aes(log(total_length), log(prot_length))) + theme_bw() + labs(x = "log of mRNA length", y = "log of ORF length")
+
+xdensity <- left_join(trinotate_wORFsize, longitudes) %>% filter(peptide_type == "Wrong strand") %>%  ggplot(aes(log(total_length))) + geom_density() + theme_bw() + labs(title = "length of mRNA vs the length of the transdecoder predicted ORF (Wrong strand)")
+
+ydensity <- left_join(trinotate_wORFsize, longitudes) %>% filter(peptide_type == "Wrong strand") %>% ggplot(aes(log(prot_length))) + geom_density() + theme_bw() + coord_flip()
+
+grid.arrange(xdensity, blankPlot, scatterplot, ydensity, 
+             ncol=2, nrow=2, widths=c(4, 1.4), heights=c(1.4, 4))
+```
+
+This is a test for the ORFs for the *Unannotated* transcripts, will they look more like the *Swissprot* class or like the other two classes? The shape of the ORFs density distribution is similar to "bad" transcripts classes, however, taking into account that the unannotated transcripts are also generally shorter, this is not concerning. The scatterplot does look more like the one from the *Swissprot* genes because they are more correlated with their transcript length (the area right at or below the diagonal is more populated). Many of these transcripts likely code for true novel gasteropod or mollusc transcripts.
+
+```{r unnanotated ORF size distribution, echo=FALSE, message=FALSE, warning=FALSE}
+scatterplot <- left_join(trinotate_wORFsize, longitudes) %>% filter(peptide_type == "Unnanotated") %>% ggplot() + geom_point(aes(log(total_length), log(prot_length))) + theme_bw() + labs(x = "log of mRNA length", y = "log of ORF length")
+
+xdensity <- left_join(trinotate_wORFsize, longitudes) %>% filter(peptide_type == "Unnanotated") %>%  ggplot(aes(log(total_length))) + geom_density() + theme_bw() + labs(title = "length of mRNA vs the length of the transdecoder predicted ORF (Wrong strand)")
+
+ydensity <- left_join(trinotate_wORFsize, longitudes) %>% filter(peptide_type == "Unnanotated") %>% ggplot(aes(log(prot_length))) + geom_density() + theme_bw() + coord_flip()
+
+grid.arrange(xdensity, blankPlot, scatterplot, ydensity, 
+             ncol=2, nrow=2, widths=c(4, 1.4), heights=c(1.4, 4))
+```
 
 ## Antisense transcripts
 
@@ -157,4 +196,6 @@ ampirr %>% transmute(qseqid, sseqid, Protein_coding_mRNAs = total_length.qer, An
 ```
 
 
+## Bibliography
 
+Sommer, S. S., & Cohen, J. E. (1980). The size distributions of proteins, mRNA, and nuclear RNA. Journal of molecular evolution, 15(1), 37–57. https://doi.org/10.1007/BF01732582
