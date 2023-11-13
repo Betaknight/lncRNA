@@ -5,74 +5,24 @@ Bruno
 
 Librerias
 
-``` r
-library(dplyr)
-```
-
-    ## 
-    ## Attaching package: 'dplyr'
-
-    ## The following objects are masked from 'package:stats':
-    ## 
-    ##     filter, lag
-
-    ## The following objects are masked from 'package:base':
-    ## 
-    ##     intersect, setdiff, setequal, union
-
-``` r
-library(tidyr)
-library(forcats)
-library(stringr)
-library(ggplot2)
-library(here)
-```
-
-    ## here() starts at C:/Users/mwaso/Documents/Proyecto_D_laeve/20-Transcriptomic_Bulk/24-lncRNA
-
-``` r
-directorio <- here()
-source("scriptlncrna.R")
-```
-
-    ## New names:
-    ## * `` -> `...1`
-    ## * `` -> `...8`
-
-    ## New names:
-    ## Rows: 79530 Columns: 12
-    ## -- Column specification
-    ## -------------------------------------------------------- Delimiter: "\t" chr
-    ## (3): X1, X2, X6 dbl (9): X3, X4, X5, X7, X8, X9, X10, X11, X12
-    ## i Use `spec()` to retrieve the full column specification for this data. i
-    ## Specify the column types or set `show_col_types = FALSE` to quiet this message.
-    ## Rows: 224804 Columns: 5
-    ## -- Column specification
-    ## -------------------------------------------------------- Delimiter: "\t" chr
-    ## (1): #transcript dbl (4): plus_strand_1stReads, minus_strand_1stReads,
-    ## total_reads, diff_ratio
-    ## i Use `spec()` to retrieve the full column specification for this data. i
-    ## Specify the column types or set `show_col_types = FALSE` to quiet this message.
-    ## Rows: 206854 Columns: 5
-    ## -- Column specification
-    ## -------------------------------------------------------- Delimiter: "\t" chr
-    ## (1): #transcript dbl (4): plus_strand_1stReads, minus_strand_1stReads,
-    ## total_reads, diff_ratio
-    ## i Use `spec()` to retrieve the full column specification for this data. i
-    ## Specify the column types or set `show_col_types = FALSE` to quiet this message.
-    ## -- Column specification
-    ## -------------------------------------------------------- cols( X1 =
-    ## col_character(), X2 = col_double() )
-    ## * `` -> `...1`
-    ## * `` -> `...8`
-
 You can check some preliminary analysis and summary statistics
-[here](./SomeStatistics.md) Union de las columnas: plus, minus, total
+<<<<<<< HEAD
+[here](./SomeStatistics.md)
+
+Los histogramas son respecto al dif-ratio de la suma de amp y irr para
+querry y target, la maypría de transcritos tienen
+=======
+[here](./SomeStatistics.md) 
+
+Union de las columnas: plus, minus, total
 strands y diff ratio de AMP e IRR con query y target Los histogramas son
 respecto al dif-ratio de la suma de amp y irr para querry y target
+>>>>>>> 74c0a1b2517d31a935b5ffcb2abf503cc7b6b4b9
 
 ``` r
-ggplot(data = ampirr, aes(x = diff_ratio_ampirr.qer)) + geom_histogram() + labs(x = "diff ratio amp + irr", title = "Query") + theme(plot.title = element_text(hjust = 0.5)) + xlim(-1,1)
+#Histogram of the ratio of reads on the positive and the negative strand (ideal is -1)
+ggplot(data = ampirr, aes(x = diff_ratio_ampirr.qer)) + geom_histogram() + 
+  labs(x = "Difference ratio of reads", title = "Query mRNAs show the expected predominance of minus strand reads", subtitle = "Difference ratio taking into account both experiments", y = "Number of transcripts") + theme(plot.title = element_text(hjust = 0.5)) + xlim(-1,1)
 ```
 
     ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
@@ -84,7 +34,8 @@ ggplot(data = ampirr, aes(x = diff_ratio_ampirr.qer)) + geom_histogram() + labs(
 ![](gitlncRNA_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
 
 ``` r
-ggplot(data = ampirr, aes(x = diff_ratio_ampirr.target)) + geom_histogram() + labs(x = "diff ratio amp + irr", title = "Target") + theme(plot.title = element_text(hjust = 0.5)) + xlim(-1,1)
+ggplot(data = ampirr, aes(x = diff_ratio_ampirr.target)) + geom_histogram() + 
+  labs(x = "Difference ratio of reads", title = "Antisense mRNAs show an even distribution of read strand", subtitle = "Difference ratio taking into account both experiments", y = "Number of transcripts") + theme(plot.title = element_text(hjust = 0.5)) + xlim(-1,1)
 ```
 
     ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
@@ -94,18 +45,74 @@ ggplot(data = ampirr, aes(x = diff_ratio_ampirr.target)) + geom_histogram() + la
 
 ![](gitlncRNA_files/figure-gfm/unnamed-chunk-2-2.png)<!-- -->
 
-Expresion diferencial de
+Expresión diferencial para las condiciones de amputación y radiación
 
 ``` r
+#Grafica de puntos de los cuadrantes +,- y -,+ #
 #amp
-filter(qer_sub_diff, (log2FoldChange.qer.amp * log2FoldChange.sub.amp) < 0) %>% ggplot(aes(x = log2FoldChange.sub.amp, y = log2FoldChange.qer.amp)) + geom_point() + labs(title = "Amp") + theme(plot.title = element_text(hjust = 0.5))
+filter(qer_sub_diff, (log2FoldChange.qer.amp * log2FoldChange.sub.amp) < 0) %>% ggplot(aes(x = log2FoldChange.sub.amp, y = log2FoldChange.qer.amp)) + geom_point() + labs(title = "DEG relationship between Query and Subject" , subtitle = "DEG Amp", x = "log2foldchange antisense transcript" , y = "log2foldchange RNA protein coding") + theme(plot.title = element_text(hjust = 0.5))
 ```
 
 ![](gitlncRNA_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
 ``` r
 #irr
-filter(qer_sub_diff, (log2FoldChange.qer.irr * log2FoldChange.sub.irr) < 0) %>% ggplot(aes(x = log2FoldChange.sub.irr, y = log2FoldChange.qer.irr)) + geom_point() + labs(title = "Irr") + theme(plot.title = element_text(hjust = 0.5))
+filter(qer_sub_diff, (log2FoldChange.qer.irr * log2FoldChange.sub.irr) < 0) %>% ggplot(aes(x = log2FoldChange.sub.irr, y = log2FoldChange.qer.irr)) + geom_point() + labs(title = "DEG relationship between Query and Subject" , subtitle = "DEG Irr", x = "log2foldchange antisense transcript" , y = "log2foldchange RNA protein coding") + theme(plot.title = element_text(hjust = 0.5))
 ```
 
 ![](gitlncRNA_files/figure-gfm/unnamed-chunk-3-2.png)<!-- -->
+
+Descripción de casos: caso 1 El alineamiento es solamente dentro del CDS
+caso 2 El alineamiento es tan largo que cae en las 3 zonas (5UTR, CDS y
+3UTR) caso 3 El alineamiento empieza en la zona 5UTR y termina dentro de
+CDS caso 4 El alineamiento empieza en la zona de CDS y termina en 3UTR
+caso 5 El alineamiento es solamente en la zona 5UTR caso 6 El
+alineamiento es solamente en la zona 3UTR
+
+``` r
+prot %>% ggplot(aes(x = caso)) + geom_histogram(stat = "count") + labs(title = "La mayoría de alineamientos son solamente en la zona 3UTR" ,subtitle = "Distribución de casos")
+```
+
+![](gitlncRNA_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+
+\#Código para histogramas Histogramas Cuando el alineamiento es en la
+zona de CDS, la mayoría de alineamientos en la zona de CDS se alinea con
+el 50% del
+
+``` r
+prot %>% filter(CDSporcentaje>0) %>%   ggplot(aes(x = CDSporcentaje)) + geom_histogram()
+```
+
+    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+![](gitlncRNA_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+
+Cuando el alineamiento es en la zona 3UTR, la gran mayoría de veces se
+alinea con todo el largo del área 3UTR
+
+``` r
+prot %>% filter(UTR3porcentaje>0) %>%   ggplot(aes(x = UTR3porcentaje)) + geom_histogram()
+```
+
+    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+![](gitlncRNA_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+
+Cuando el alineamiento es en la zona 5UTR, la mayoría de veces el
+alineamiento es en todo el largo del área 5UTR
+
+``` r
+prot %>% filter(UTR5porcentaje>0) %>%   ggplot(aes(x = UTR5porcentaje)) + geom_histogram()
+```
+
+    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+![](gitlncRNA_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+
+Correlación positiva para el caso 1 (el alineamiento es únicamente en la
+zona CDS) Pearson’s product-moment correlation
+
+data: x$log2FoldChange.sub.amp and x$log2FoldChange.qer.amp t = 22.313,
+df = 21331, p-value \< 2.2e-16 alternative hypothesis: true correlation
+is greater than 0 95 percent confidence interval: 0.1400006 1.0000000
+sample estimates: cor 0.1510244
