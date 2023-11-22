@@ -65,3 +65,15 @@ transcript_classification <- inner_join(transcript_classification, longitudes)
 # Length distribution of ORFs
 
 trinotate_wORFsize <- filter(trinotate, !is.na(prot_id)) %>% left_join(longitudes) %>% separate(prot_coordinates, sep = "-", into = c("prot_begin", "prot_end")) %>% mutate(prot_length = abs(as.integer(prot_begin) - as.integer(prot_end)))
+
+## Differential expression of lncRNAs
+diff_exp_amp <- filter(results_full_amp_degs, padj < 0.05)
+diff_exp_amp <- left_join(diff_exp_amp, transcript_classification)
+diff_exp_amp %>% group_by(rna_type_joint) %>% summarise(number = n())
+
+diff_exp_irr <- filter(results_full_irr_degs, padj < 0.05)
+diff_exp_irr <- left_join(diff_exp_irr, transcript_classification)
+diff_exp_irr %>% group_by(rna_type_joint) %>% summarise(number = n())
+
+#Which classification do antisense transcripts have?
+antisense <- swissProt_self_blastAStranscripts %>% select(sseqid) %>% unique()
