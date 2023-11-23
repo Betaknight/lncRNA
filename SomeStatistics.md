@@ -1,7 +1,7 @@
 Some_statistics
 ================
 Jeronimo Miranda
-2023-11-09
+2023-11-13
 
 ## Transcript classification
 
@@ -132,9 +132,50 @@ filter(trinotate, !is.na(prot_id)) %>% left_join(longitudes) %>% ggplot() + geom
 
 ## Length distribution of ORFs
 
-Now the obvious step is to check the distribution of ORFs
+Now the obvious step is to check the distribution of ORFs. First, we
+look at the distribution of ORF length, dependent on its transcript.
+When looking only at **Swissprot** annotated ORFs, we see again the
+lognormal distribution of transcript size (Sommer & Cohen, 1980). The
+ORF size is not quite lognormal, though, with several peaks in the
+log-transformed density plot.
 
 ![](SomeStatistics_files/figure-gfm/scatter%20side%20density%20mrna%20vs%20orf-1.png)<!-- -->
+
+Now we look at the same scatterplot comparison for the Truncated
+category. To remember, these were classified as **Truncated** for having
+similarity at the transcript level but lacking it at the level of the
+translated protein blast. This suggested that they are pseudogenes, that
+are still similar to a transcript, but the predicted ORF is not big
+enough to show enough similarity.
+
+When looking at the scatterplot below, we have more confidence that this
+is the case. These transcripts still show a roughly lognormal density
+distribution, but most points are located well below the diagonal and
+their density distribution on the y-axis shows that the vast majority of
+the predicted ORFs are too short (around $e^6 =~ 400$ nucleotides).
+
+![](SomeStatistics_files/figure-gfm/truncated%20ORFs%20size%20comparison-1.png)<!-- -->
+
+The distribution of ORF length for those on the WRONG transcript strand
+is similar to the “Truncated” category. Most transcripts are below
+$e^{6.5}$ or around 665 nucleotides. This also supports the idea that
+these transcripts correspond to assembly artifacts. However, their
+position on the opposite strand could also indicate that they are
+antisense transcripts, as we will see later.
+
+![](SomeStatistics_files/figure-gfm/Wrong%20strand%20ORFs-1.png)<!-- -->
+
+This is a test for the ORFs for the *Unannotated* transcripts, will they
+look more like the *Swissprot* class or like the other two classes? The
+shape of the ORFs density distribution is similar to “bad” transcripts
+classes, however, taking into account that the unannotated transcripts
+are also generally shorter, this is not concerning. The scatterplot does
+look more like the one from the *Swissprot* genes because they are more
+correlated with their transcript length (the area right at or below the
+diagonal is more populated). Many of these transcripts likely code for
+true novel gasteropod or mollusc transcripts.
+
+![](SomeStatistics_files/figure-gfm/unnanotated%20ORF%20size%20distribution-1.png)<!-- -->
 
 ## Antisense transcripts
 
@@ -189,3 +230,9 @@ ampirr %>% transmute(qseqid, sseqid, Protein_coding_mRNAs = total_length.qer, An
 ```
 
 ![](SomeStatistics_files/figure-gfm/Grafica%20de%20longitud-1.png)<!-- -->
+
+## Bibliography
+
+Sommer, S. S., & Cohen, J. E. (1980). The size distributions of
+proteins, mRNA, and nuclear RNA. Journal of molecular evolution, 15(1),
+37–57. <https://doi.org/10.1007/BF01732582>
