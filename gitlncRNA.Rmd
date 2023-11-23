@@ -24,8 +24,7 @@ directorio <- here()
 source("scriptlncrna.R")
 ```
 
-You can check some preliminary analysis and summary statistics [here](./SomeStatistics.md)  
-
+You can check some preliminary analysis and summary statistics [here](./SomeStatistics.md)
 
 Los histogramas son respecto al dif-ratio de la suma de amp y irr para querry y target, la maypría de transcritos tienen 
 
@@ -91,3 +90,46 @@ alternative hypothesis: true correlation is greater than 0
 sample estimates:
       cor 
 0.1510244 
+
+
+
+Explicación sobre los DF
+
+Descripción del trabajo
+
+DF de expresión diferencial:
+-results_full_amp_degs
+-results_full_irr_degs
+
+DF resultados del blast con transcritos antisentido:
+-swissProt_self_blastAStranscripts
+
+DF con anotaciones de BLASTX, prot ID, prot corrds, BLASTP, ontología, nombre de los genes, organismos en el que se encuentra, length, etc
+-dlaevis_assembly_uniprt
+
+Data frames creadas:
+
+-ampirr: 32 columnas, 79mil filas 
+Tomando como base el DF swissProt, se hizzo un left join de los DF de DEG. Además se hizo otro left join con las longitudes
+
+ampirr tiene 79mil entradas porque a veces un transcrito de query, hace match con diferentes subjects. En total hay 9930 queries diferentes.
+
+-Filtrados:32 collumnas, 23mil filas.
+
+Tomando como base el DF ampirr, se hizo un filtro para seleccionar a los transcritos mayores a 300. El df filtrado contiene 23639 entradas, es decir, se quedarón fuera 50mil datos aprox
+
+-qer_sub_diff:10 coulmnas, 23mil filas
+
+tomando como base filtrados. Se hicieron left joins para agregar los datos de log2FoldChange y padj para qseqid y sseqid de ambas condiciones (amp y irr)
+
+-olvidados: esta tabla tiene los 50mil datos que fueron excluidos en el DF filtrados, es decir, aquí hay transcritos de entres 200 y 300 nucleotidos.
+-diff_rati_olvidados: al DF olvidados, se le agregó los datos de log2FoldChange
+
+
+-prot:
+Se seleccionó unicamente las columnas de trasncript_id y prot coords del DF dlaevis_assembly_uniprt. Con código se separo prot coords en dos columnas (prot_start y prot_end).
+Se eliminaron las filas con NA en prot coord
+Se hizo un left join en prot con filtrados para agregar los datos de "qseqid, sseqid, length, qstart, qend,sstart, send"
+Se filtró para tener únicamente los datos en el que van en sentido
+Se agregaron columnas con los datos de CDS_length y URT_3
+Se hicieron las columnas de los casos, porcentaje de zona cubierto, y porcentaje del lnc en cada zona.

@@ -38,7 +38,6 @@ ss_analysisIrr <- read_delim(paste0(directorio,"/data/ss_analysisIrr.dat"),
                              trim_ws = TRUE)
 View(ss_analysisIrr)
 
-
 colnames(ss_analysisAMP)[1] <- "transcript_id"
 colnames(ss_analysisIrr)[1] <- "transcript_id"
 
@@ -60,12 +59,24 @@ colnames(longitudes) <- c("transcript_id", "total_length")
 ampirr <- inner_join(ampirr, longitudes, by = join_by("qseqid" == "transcript_id"))
 ampirr <- inner_join(ampirr, longitudes, by = join_by("sseqid" == "transcript_id"), suffix = c(".qer", ".target"))
 
-#length distribution of mRNAs
-select(ampirr, qseqid, total_length.qer) %>% unique() %>%
-  ggplot(aes(x = total_length.qer)) + geom_histogram(binwidth = 200) + scale_x_continuous(n.breaks = 10)
+#length distribution en escala log10 of mRNAs
+select(ampirr, qseqid, total_length.qer) %>% unique() %>% ggplot() + geom_histogram(aes(x =total_length.qer)) + scale_x_log10()
+# código para definir la escala del eje X y cúantos habrá- binwith= contenedor/ ancho bidireccional?* ggplot()) + geom_histogram(binwidth = 200) + scale_x_continuous(n.breaks = 10)
 
-select(ampirr, sseqid, total_length.target) %>% unique() %>%
-  ggplot(aes(x = total_length.target)) + geom_histogram(binwidth = 200) + scale_x_continuous(n.breaks = 10)
+select(ampirr, qseqid, total_length.target) %>% unique() %>% ggplot() + geom_histogram(aes(x =total_length.target)) + scale_x_log10()
+
+#####
+olvidados <- filter(ampirr, length < 300)
+diff_rati_olvidados <- left_join(select(olvidados, qseqid, sseqid),select(results_full_amp_degs,transcript_id, log2FoldChange, padj), by = join_by("qseqid" == "transcript_id")) %>% 
+  left_join(select(results_full_amp_degs,transcript_id, log2FoldChange, padj), by =join_by("sseqid" == "transcript_id"), suffix = c(".qer.amp", ".sub.amp")) %>% 
+  left_join(select(results_full_irr_degs, transcript_id, log2FoldChange, padj), by = join_by("qseqid" == "transcript_id")) %>% 
+  left_join(select(results_full_irr_degs, transcript_id, log2FoldChange, padj), by = join_by("sseqid" == "transcript_id"), suffix = c(".qer.irr", ".sub.irr"))
+#amp 318 datos
+filter(diff_rati_olvidados, padj.qer.amp < 0.05 | padj.sub.amp < 0.05) %>% View # %>% left_join(select(dlaevis_assembly_uniprt, transcript_id,gene_names),by = join_by("qseqid" == "transcript_id")) %>%  View # hacer un left join con dlaevis para saber el nombre del gen
+#irr 205 datos
+filter(diff_rati_olvidados, padj.qer.irr < 0.05 | padj.sub.irr < 0.05) %>% View
+
+#####
 
 # Filtrado de matches mayores a 300
 
@@ -79,6 +90,13 @@ left_join(select(results_full_irr_degs, transcript_id, log2FoldChange, padj), by
 
 #query = RNA protein coding
 #target antisense transcript
+
+#amp
+filter(qer_sub_diff, padj.qer.amp < 0.05 | padj.sub.amp < 0.05) # %>% left_join(select(dlaevis_assembly_uniprt, transcript_id,gene_names),by = join_by("qseqid" == "transcript_id")) %>%  View # hacer un left join con dlaevis para saber el nombre del gen
+#irr
+filter(qer_sub_diff, padj.qer.irr < 0.05 | padj.sub.irr < 0.05) %>% View
+
+###
 
 #Creacion de un DF con el inicio y fin de la prot
 prot <- select(dlaevis_assembly_uniprt, transcript_id, prot_coords) %>% separate(prot_coords, c("prot_start", "prot_end"), sep = "-") %>% mutate(prot_end = str_remove(prot_end, "[+]"))
@@ -113,11 +131,6 @@ prot$caso <- case_when(
 #caso 5 El match es en la zona 5UTR
 #caso 6 El match es en la zona 3UTR
 
-#filter(prot, caso != NA) %>%  View
-#filter(prot, caso != 0) %>%  View
-#filter(prot, cprot_end != 0) %>%  View
-#filter(prot, prot_end != 0) %>%  View
-
 prot <- mutate(prot, prot_end - prot_start) # + 1 para que coincida
 colnames(prot)[11] <- "CDS_length"
 prot <- left_join(prot, longitudes, by = join_by("qseqid" == "transcript_id"))
@@ -128,31 +141,24 @@ colnames(prot)[13] <- "UTR_3"
 #largo del 5UTR = inicio -1
 #select(prot, qseqid, total_length) %>% unique() %>% ggplot(aes(x = total_length)) + geom_histogram() + labs(x = "bp", title = "Total_length") + theme(plot.title = element_text(hjust = 0.5))
 
- 
-prot %>% group_by(qseqid) %>%  View
+#script para practicar las tablas pivotales
 #prot %>% group_by(qseqid) %>% summarise(no = n()) %>%  left_join(select(prot,qseqid, total_length), by = "qseqid") %>%  View
-
-#prot %>% group_by(qseqid) %>% summarise(Median_3p = median(qstart))
 #prot %>% group_by(qseqid) %>% summarise(No = n(), suma = sum(length), total = unique(total_length))
-prot %>% group_by(caso) %>% summarise(No = n(), suma = sum(length), total = unique(caso))
-#prot %>% group_by(qseqid) %>% summarise(No = n(), total = unique(total_length)) %>% ggplot(aes(x = No, y = total)) + geom_point() + labs(title = "Grafica") + theme(plot.title = element_text(hjust = 0.5))
-#prot %>% group_by(qseqid) %>% summarise(No = n(), total = unique(total_length)) %>% ggplot(aes(x = total, y = No)) + geom_point() + labs(title = "Grafica") + theme(plot.title = element_text(hjust = 0.5))
-#prot %>% group_by(qseqid) %>% summarise(No = n(),suma = sum(length), total = unique(total_length)) %>% ggplot(aes(x = total, y = suma)) + geom_point() + labs(title = "Grafica") + theme(plot.title = element_text(hjust = 0.5))
-#prot %>% group_by(qseqid) %>% summarise(No = n(),mean = mean(length), total = unique(total_length)) %>% ggplot(aes(x = total, y = mean)) + geom_point() + labs(title = "Grafica") + theme(plot.title = element_text(hjust = 0.5))
+
+prot %>% group_by(caso) %>% summarise(No = n())
 
 #Cambiar el tipo de dato de double a integer
 #columnas <- c("length",qstart","qend","prot_start","prot_end","CDS_length","total_length","UTR_3")
 #prot[columnas] <- lapply(prot[columnas], as.integer)
 
-
 #Lógica
-# Porcentaje de la zona CDS que esta alineada con el transcrito antisentido
-#caso 1 CDS = 100% length?% , 
-#caso 2 
+# Porcentaje de 5UTR,CDS y 3UTR cubierto con el transcrito antisentido
+#caso 1 Dado que el alineamiento es en la zona CDS el porcentaje cubierto de CDS debe ser >=100% y las zonas de 5 y 3 UTR deben tener 0%
+#caso 2 El alineamiento se da en las zonas 5utr y cds por lo tanto el porcentaje de la zona 3utr debe ser 0
 #caso 3 prot end - qstart = x% en CDS, y% en 3UTR total lenght- prot end = 100%, prot end - qend = y%, 
 #caso 4 
-#caso 5 100% del match en zona 5utr
-#caso 6 100% del match en la zona 3utr
+#caso 5 100% del match en zona 5utr, 0 en las demás
+#caso 6 100% del match en la zona 3utr, 0 eb las demás
 #Script
 
 prot$UTR5porcentaje <- case_when(
@@ -185,8 +191,43 @@ prot$UTR3porcentaje <- case_when(
 left_join(select(prot,qseqid,sseqid,caso), qer_sub_diff, by = "qseqid") %>% filter(caso == "caso 6") %>% 
 ggplot(aes(x = log2FoldChange.sub.amp, y = log2FoldChange.qer.amp)) + geom_point() + labs(title = "DEG relationship between Query and Subject" , subtitle = "DEG Amp", x = "log2foldchange antisense transcript" , y = "log2foldchange RNA protein coding") + theme(plot.title = element_text(hjust = 0.5))
 
-x <- left_join(select(prot,qseqid,sseqid,caso), qer_sub_diff, by = "qseqid") %>% filter(caso == "caso 6")
-cor(x$log2FoldChange.sub.amp, x$log2FoldChange.qer.amp, use = "pairwise.complete.obs")
-cor.test(x$log2FoldChange.sub.amp, x$log2FoldChange.qer.amp,alternative = "greater", use = "pairwise.complete.obs")
-?cor.test
+
+#cor(x$log2FoldChange.sub.amp, x$log2FoldChange.qer.amp, use = "pairwise.complete.obs")
+#cor.test(x$log2FoldChange.sub.amp, x$log2FoldChange.qer.amp,alternative = "greater", use = "pairwise.complete.obs")
+
 prot %>% ggplot(aes(x = caso)) + geom_histogram()
+
+#agregar el dato de la mediana
+#grafica de log, transcritos VS UTR 3 y 5
+#ggplot(prot, aes(x = ?????)) + geom_histogram() + scale_x_log()
+
+#Logica para saber que porcentaje del transcrito está en cada zona.Debe sumar 100%
+
+prot$porcentaje_en5UTR <- case_when(
+  prot$caso == "caso 1" ~ 0,
+  prot$caso == "caso 2" ~ ((prot$prot_start-prot$qstart)*100/(prot$qend-prot$qstart)),
+  prot$caso == "caso 3" ~ ((prot$prot_start-prot$qstart)*100/(prot$qend-prot$qstart)),
+  prot$caso == "caso 4" ~ 0,
+  prot$caso == "caso 5" ~ 100,
+  prot$caso == "caso 6" ~ 0,
+)
+
+prot$porcentaje_enCDS <- case_when(
+  prot$caso == "caso 1" ~ 100,
+  prot$caso == "caso 2" ~ 100,
+  prot$caso == "caso 3" ~ ((prot$qend-prot$prot_start)*100/(prot$qend-prot$qstart)),
+  prot$caso == "caso 4" ~ ((prot$prot_end-prot$qstart)*100/(prot$qend-prot$qstart)),
+  prot$caso == "caso 5" ~ 0,
+  prot$caso == "caso 6" ~ 0,
+)
+
+prot$porcentaje_en3UTR <- case_when(
+  prot$caso == "caso 1" ~ 0,
+  prot$caso == "caso 2" ~ as.numeric(format(((prot$qend-prot$prot_end)*100/(prot$qend-prot$qstart)), scientific = FALSE, digits = 2)), 
+  prot$caso == "caso 3" ~ 0,
+  prot$caso == "caso 4" ~ as.numeric(format(((prot$qend-prot$prot_end)*100/(prot$qend-prot$qstart)), scientific = FALSE, digits = 2)),
+  prot$caso == "caso 5" ~ 0,
+  prot$caso == "caso 6" ~ 100,
+)
+#sugiero menor a 4.8% porque en general estas son 40 bases o menos. hay un transcrito largo (5mil) que tiene un 4.8% en 3UTR que representa aprox 250 bases
+#ilter(prot, porcentaje_en5UTR < 5 & porcentaje_en5UTR > 0) %>%  View
