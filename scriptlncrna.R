@@ -65,18 +65,22 @@ select(ampirr, qseqid, total_length.qer) %>% unique() %>% ggplot() + geom_histog
 
 select(ampirr, qseqid, total_length.target) %>% unique() %>% ggplot() + geom_histogram(aes(x =total_length.target)) + scale_x_log10()
 
-#####
+#olvidados son los datos entre 200 y 300 bases
 olvidados <- filter(ampirr, length < 300)
 diff_rati_olvidados <- left_join(select(olvidados, qseqid, sseqid),select(results_full_amp_degs,transcript_id, log2FoldChange, padj), by = join_by("qseqid" == "transcript_id")) %>% 
   left_join(select(results_full_amp_degs,transcript_id, log2FoldChange, padj), by =join_by("sseqid" == "transcript_id"), suffix = c(".qer.amp", ".sub.amp")) %>% 
   left_join(select(results_full_irr_degs, transcript_id, log2FoldChange, padj), by = join_by("qseqid" == "transcript_id")) %>% 
   left_join(select(results_full_irr_degs, transcript_id, log2FoldChange, padj), by = join_by("sseqid" == "transcript_id"), suffix = c(".qer.irr", ".sub.irr"))
 #amp 318 datos
-filter(diff_rati_olvidados, padj.qer.amp < 0.05 | padj.sub.amp < 0.05) %>% View # %>% left_join(select(dlaevis_assembly_uniprt, transcript_id,gene_names),by = join_by("qseqid" == "transcript_id")) %>%  View # hacer un left join con dlaevis para saber el nombre del gen
-#irr 205 datos
-filter(diff_rati_olvidados, padj.qer.irr < 0.05 | padj.sub.irr < 0.05) %>% View
+filter(diff_rati_olvidados, padj.qer.amp < 0.05 | padj.sub.amp < 0.05) #%>% left_join(select(dlaevis_assembly_uniprt, transcript_id,gene_names),by = join_by("qseqid" == "transcript_id")) %>%  View # hacer un left join con dlaevis para saber el nombre del gen
+# Gráfica de puntos con valores de padj significativos.
+filter(diff_rati_olvidados, padj.qer.amp < 0.05 | padj.sub.amp < 0.05) %>% ggplot(aes(x = log2FoldChange.sub.amp, y = log2FoldChange.qer.amp)) + geom_point()
 
-#####
+#irr 205 datos
+filter(diff_rati_olvidados, padj.qer.irr < 0.05 | padj.sub.irr < 0.05) #%>% View
+# Gráfica de puntos con valores de padj significativos.
+filter(diff_rati_olvidados, padj.qer.irr < 0.05 | padj.sub.irr < 0.05) %>% ggplot(aes(x = log2FoldChange.sub.amp, y = log2FoldChange.qer.amp)) + geom_point()
+
 
 # Filtrado de matches mayores a 300
 
@@ -93,9 +97,15 @@ left_join(select(results_full_irr_degs, transcript_id, log2FoldChange, padj), by
 
 #amp
 filter(qer_sub_diff, padj.qer.amp < 0.05 | padj.sub.amp < 0.05) # %>% left_join(select(dlaevis_assembly_uniprt, transcript_id,gene_names),by = join_by("qseqid" == "transcript_id")) %>%  View # hacer un left join con dlaevis para saber el nombre del gen
+#Gráfica de puntos con valores de padj significativos.
+filter(qer_sub_diff, padj.qer.irr < 0.05 | padj.sub.irr < 0.05) %>% ggplot(aes(x = log2FoldChange.sub.amp, y = log2FoldChange.qer.amp)) + geom_point()
 #irr
 filter(qer_sub_diff, padj.qer.irr < 0.05 | padj.sub.irr < 0.05) %>% View
+#Gráfica de puntos con valores de padj significativos.
+filter(qer_sub_diff, padj.qer.amp < 0.05 | padj.sub.amp < 0.05) %>% ggplot(aes(x = log2FoldChange.sub.amp, y = log2FoldChange.qer.amp)) + geom_point()
 
+###
+#scripts para poder 
 ###
 
 #Creacion de un DF con el inicio y fin de la prot
@@ -223,11 +233,12 @@ prot$porcentaje_enCDS <- case_when(
 
 prot$porcentaje_en3UTR <- case_when(
   prot$caso == "caso 1" ~ 0,
-  prot$caso == "caso 2" ~ as.numeric(format(((prot$qend-prot$prot_end)*100/(prot$qend-prot$qstart)), scientific = FALSE, digits = 2)), 
+  prot$caso == "caso 2" ~ ((prot$qend-prot$prot_end)*100/(prot$qend-prot$qstart)), #, scientific = FALSE, digits = 2)), 
   prot$caso == "caso 3" ~ 0,
-  prot$caso == "caso 4" ~ as.numeric(format(((prot$qend-prot$prot_end)*100/(prot$qend-prot$qstart)), scientific = FALSE, digits = 2)),
+  prot$caso == "caso 4" ~ ((prot$qend-prot$prot_end)*100/(prot$qend-prot$qstart)), #, scientific = FALSE, digits = 2)),
   prot$caso == "caso 5" ~ 0,
   prot$caso == "caso 6" ~ 100,
 )
 #sugiero menor a 4.8% porque en general estas son 40 bases o menos. hay un transcrito largo (5mil) que tiene un 4.8% en 3UTR que representa aprox 250 bases
 #ilter(prot, porcentaje_en5UTR < 5 & porcentaje_en5UTR > 0) %>%  View
+#o que por caso, la diferencia sea de 10 bases o menos
