@@ -67,10 +67,10 @@ filter(qer_sub_diff, (log2FoldChange.qer.irr * log2FoldChange.sub.irr) < 0) %>% 
 ``` r
 #amp
 #Gráfica de puntos con valores de padj significativos.
-filter(qer_sub_diff, padj.qer.irr < 0.05 | padj.sub.irr < 0.05) %>% ggplot(aes(x = log2FoldChange.sub.amp, y = log2FoldChange.qer.amp)) + geom_point()
+filter(qer_sub_diff, padj.qer.irr < 0.05 | padj.sub.irr < 0.05) %>% ggplot(aes(x = log2FoldChange.sub.irr, y = log2FoldChange.qer.irr)) + geom_point()
 ```
 
-    ## Warning: Removed 6 rows containing missing values (`geom_point()`).
+    ## Warning: Removed 4 rows containing missing values (`geom_point()`).
 
 ![](gitlncRNA_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
 
@@ -102,10 +102,10 @@ filter(diff_rati_olvidados, padj.qer.amp < 0.05 | padj.sub.amp < 0.05) %>% ggplo
 ``` r
 #irr
 # Gráfica de puntos con valores de padj significativos.
-filter(diff_rati_olvidados, padj.qer.irr < 0.05 | padj.sub.irr < 0.05) %>% ggplot(aes(x = log2FoldChange.sub.amp, y = log2FoldChange.qer.amp)) + geom_point()
+filter(diff_rati_olvidados, padj.qer.irr < 0.05 | padj.sub.irr < 0.05) %>% ggplot(aes(x = log2FoldChange.sub.irr, y = log2FoldChange.qer.irr)) + geom_point()
 ```
 
-    ## Warning: Removed 13 rows containing missing values (`geom_point()`).
+    ## Warning: Removed 6 rows containing missing values (`geom_point()`).
 
 ![](gitlncRNA_files/figure-gfm/unnamed-chunk-5-2.png)<!-- -->
 
@@ -161,7 +161,7 @@ prot %>% filter(UTR5porcentaje>0) %>%   ggplot(aes(x = UTR5porcentaje)) + geom_h
 Correlación positiva para el caso 1 (el alineamiento es únicamente en la
 zona CDS)
 
-ANOTACIONES PARA LOS CASOS \#####
+**ANOTACIONES PARA LOS CASOS**
 
     Pearson's product-moment correlation
 
@@ -170,7 +170,7 @@ df = 21331, p-value \< 2.2e-16 alternative hypothesis: true correlation
 is greater than 0 95 percent confidence interval: 0.1400006 1.0000000
 sample estimates: cor 0.1510244
 
-Explicación sobre los DF
+\##Explicación sobre los DF
 
 Descripción del trabajo
 

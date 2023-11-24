@@ -79,7 +79,7 @@ filter(diff_rati_olvidados, padj.qer.amp < 0.05 | padj.sub.amp < 0.05) %>% ggplo
 #irr 205 datos
 filter(diff_rati_olvidados, padj.qer.irr < 0.05 | padj.sub.irr < 0.05) #%>% View
 # Gráfica de puntos con valores de padj significativos.
-filter(diff_rati_olvidados, padj.qer.irr < 0.05 | padj.sub.irr < 0.05) %>% ggplot(aes(x = log2FoldChange.sub.amp, y = log2FoldChange.qer.amp)) + geom_point()
+filter(diff_rati_olvidados, padj.qer.irr < 0.05 | padj.sub.irr < 0.05) %>% ggplot(aes(x = log2FoldChange.sub.irr, y = log2FoldChange.qer.irr)) + geom_point()
 
 
 # Filtrado de matches mayores a 300
@@ -98,11 +98,11 @@ left_join(select(results_full_irr_degs, transcript_id, log2FoldChange, padj), by
 #amp
 filter(qer_sub_diff, padj.qer.amp < 0.05 | padj.sub.amp < 0.05) # %>% left_join(select(dlaevis_assembly_uniprt, transcript_id,gene_names),by = join_by("qseqid" == "transcript_id")) %>%  View # hacer un left join con dlaevis para saber el nombre del gen
 #Gráfica de puntos con valores de padj significativos.
-filter(qer_sub_diff, padj.qer.irr < 0.05 | padj.sub.irr < 0.05) %>% ggplot(aes(x = log2FoldChange.sub.amp, y = log2FoldChange.qer.amp)) + geom_point()
+filter(qer_sub_diff, padj.qer.amp < 0.05 | padj.sub.amp < 0.05) %>% ggplot(aes(x = log2FoldChange.sub.amp, y = log2FoldChange.qer.amp)) + geom_point()
 #irr
 filter(qer_sub_diff, padj.qer.irr < 0.05 | padj.sub.irr < 0.05) %>% View
 #Gráfica de puntos con valores de padj significativos.
-filter(qer_sub_diff, padj.qer.amp < 0.05 | padj.sub.amp < 0.05) %>% ggplot(aes(x = log2FoldChange.sub.amp, y = log2FoldChange.qer.amp)) + geom_point()
+filter(qer_sub_diff, padj.qer.irr < 0.05 | padj.sub.irr < 0.05) %>% ggplot(aes(x = log2FoldChange.sub.irr, y = log2FoldChange.qer.irr)) + geom_point()
 
 ###
 #scripts para poder 
