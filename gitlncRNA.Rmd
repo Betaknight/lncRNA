@@ -26,7 +26,11 @@ source("scriptlncrna.R")
 
 You can check some preliminary analysis and summary statistics [here](./SomeStatistics.md)
 
-Los histogramas son respecto al dif-ratio de la suma de amp y irr para querry y target, la maypría de transcritos tienen 
+## DIF Ratio
+
+Los histogramas son respecto al dif-ratio de la suma de amp y irr para querry y target.
+
+La mayoría de lecturas están en el sentido negativo, lo cual da fiabilidad a que los transcritos que se ensamblaron  en el sentido correcto.
 
 ```{r}
 #Histogram of the ratio of reads on the positive and the negative strand (ideal is -1)
@@ -39,6 +43,8 @@ ggplot(data = ampirr, aes(x = diff_ratio_ampirr.target)) + geom_histogram() +
 
 Expresión diferencial para las condiciones de amputación y radiación
 
+#Gráficas con datos de 2 cuadrantes. Con todos los datos
+
 ```{r}
 #Grafica de puntos de los cuadrantes +,- y -,+ #
 #amp
@@ -49,6 +55,37 @@ filter(qer_sub_diff, (log2FoldChange.qer.irr * log2FoldChange.sub.irr) < 0) %>% 
 
 
 ```
+
+#Padj significativa en los 4 cuadrantes
+
+```{r}
+#amp
+#Gráfica de puntos con valores de padj significativos.
+filter(qer_sub_diff, padj.qer.irr < 0.05 | padj.sub.irr < 0.05) %>% ggplot(aes(x = log2FoldChange.sub.irr, y = log2FoldChange.qer.irr)) + geom_point()
+#irr
+#Gráfica de puntos con valores de padj significativos.
+filter(qer_sub_diff, padj.qer.amp < 0.05 | padj.sub.amp < 0.05) %>% ggplot(aes(x = log2FoldChange.sub.amp, y = log2FoldChange.qer.amp)) + geom_point()
+
+```
+
+##Olvidados
+Las gráficas anteriores se hicieron con datos mayores a 300 bases, estas gráficas son de todos los cuadrantes
+
+Estas gráficas tienen valores de padj inferiores a 0.05
+
+```{r}
+#amp
+# Gráfica de puntos con valores de padj significativos.
+filter(diff_rati_olvidados, padj.qer.amp < 0.05 | padj.sub.amp < 0.05) %>% ggplot(aes(x = log2FoldChange.sub.amp, y = log2FoldChange.qer.amp)) + geom_point()
+
+#irr
+# Gráfica de puntos con valores de padj significativos.
+filter(diff_rati_olvidados, padj.qer.irr < 0.05 | padj.sub.irr < 0.05) %>% ggplot(aes(x = log2FoldChange.sub.irr, y = log2FoldChange.qer.irr)) + geom_point()
+
+```
+
+
+##Casos de Alinieamiento
 
 Descripción de casos:
 caso 1 El alineamiento es solamente dentro del CDS
@@ -80,6 +117,9 @@ prot %>% filter(UTR5porcentaje>0) %>%   ggplot(aes(x = UTR5porcentaje)) + geom_h
 ```
 
 Correlación positiva para el caso 1 (el alineamiento es únicamente en la zona CDS)
+
+**ANOTACIONES PARA LOS CASOS**
+
 	Pearson's product-moment correlation
 
 data:  x$log2FoldChange.sub.amp and x$log2FoldChange.qer.amp
@@ -93,40 +133,40 @@ sample estimates:
 
 
 
-Explicación sobre los DF
+##Explicación sobre los DF
 
 Descripción del trabajo
 
 DF de expresión diferencial:
--results_full_amp_degs
--results_full_irr_degs
+-**results_full_amp_degs**
+-**results_full_irr_degs**
 
 DF resultados del blast con transcritos antisentido:
--swissProt_self_blastAStranscripts
+-**swissProt_self_blastAStranscripts**
 
 DF con anotaciones de BLASTX, prot ID, prot corrds, BLASTP, ontología, nombre de los genes, organismos en el que se encuentra, length, etc
--dlaevis_assembly_uniprt
+-**dlaevis_assembly_uniprt**
 
 Data frames creadas:
 
--ampirr: 32 columnas, 79mil filas 
+-**ampirr**: 32 columnas, 79mil filas 
 Tomando como base el DF swissProt, se hizzo un left join de los DF de DEG. Además se hizo otro left join con las longitudes
 
 ampirr tiene 79mil entradas porque a veces un transcrito de query, hace match con diferentes subjects. En total hay 9930 queries diferentes.
 
--Filtrados:32 collumnas, 23mil filas.
+-**Filtrados**:32 collumnas, 23mil filas.
 
 Tomando como base el DF ampirr, se hizo un filtro para seleccionar a los transcritos mayores a 300. El df filtrado contiene 23639 entradas, es decir, se quedarón fuera 50mil datos aprox
 
--qer_sub_diff:10 coulmnas, 23mil filas
+-**qer_sub_diff**:10 coulmnas, 23mil filas
 
 tomando como base filtrados. Se hicieron left joins para agregar los datos de log2FoldChange y padj para qseqid y sseqid de ambas condiciones (amp y irr)
 
--olvidados: esta tabla tiene los 50mil datos que fueron excluidos en el DF filtrados, es decir, aquí hay transcritos de entres 200 y 300 nucleotidos.
--diff_rati_olvidados: al DF olvidados, se le agregó los datos de log2FoldChange
+-**olvidados**: esta tabla tiene los 50mil datos que fueron excluidos en el DF filtrados, es decir, aquí hay transcritos de entres 200 y 300 nucleotidos.
+-**diff_rati_olvidados**: al DF olvidados, se le agregó los datos de log2FoldChange
+Gráficas con DEG de los olvidados con valores de padj menores a 0.05
 
-
--prot:
+**prot**:
 Se seleccionó unicamente las columnas de trasncript_id y prot coords del DF dlaevis_assembly_uniprt. Con código se separo prot coords en dos columnas (prot_start y prot_end).
 Se eliminaron las filas con NA en prot coord
 Se hizo un left join en prot con filtrados para agregar los datos de "qseqid, sseqid, length, qstart, qend,sstart, send"
