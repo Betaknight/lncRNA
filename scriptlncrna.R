@@ -6,6 +6,7 @@ library(tidyr)
 library(forcats)
 library(stringr)
 library(ggplot2)
+library(skimr)
 library(here)
 directorio <- here()
 dlaevis_assembly_uniprt <- read_delim(paste0(directorio,"/data/dlaevis_assembly_uniprt.csv"), 
@@ -61,51 +62,45 @@ ampirr <- inner_join(ampirr, longitudes, by = join_by("sseqid" == "transcript_id
 
 #length distribution en escala log10 of mRNAs
 select(ampirr, qseqid, total_length.qer) %>% unique() %>% ggplot() + geom_histogram(aes(x =total_length.qer)) + scale_x_log10()
-# código para definir la escala del eje X y cúantos habrá- binwith= contenedor/ ancho bidireccional?* ggplot()) + geom_histogram(binwidth = 200) + scale_x_continuous(n.breaks = 10)
+
+#código para definir la escala del eje X y cúantos habrá- binwith= contenedor/ ancho bidireccional?* ggplot()) + geom_histogram(binwidth = 200) + scale_x_continuous(n.breaks = 10)
 
 select(ampirr, qseqid, total_length.target) %>% unique() %>% ggplot() + geom_histogram(aes(x =total_length.target)) + scale_x_log10()
 
-#olvidados son los datos entre 200 y 300 bases
-olvidados <- filter(ampirr, length < 300)
-diff_rati_olvidados <- left_join(select(olvidados, qseqid, sseqid),select(results_full_amp_degs,transcript_id, log2FoldChange, padj), by = join_by("qseqid" == "transcript_id")) %>% 
+
+#################### df de medianos y filtrados
+x <- ampirr %>% left_join(select(results_full_amp_degs,transcript_id, log2FoldChange, padj), by = join_by("qseqid" == "transcript_id")) %>% 
   left_join(select(results_full_amp_degs,transcript_id, log2FoldChange, padj), by =join_by("sseqid" == "transcript_id"), suffix = c(".qer.amp", ".sub.amp")) %>% 
   left_join(select(results_full_irr_degs, transcript_id, log2FoldChange, padj), by = join_by("qseqid" == "transcript_id")) %>% 
   left_join(select(results_full_irr_degs, transcript_id, log2FoldChange, padj), by = join_by("sseqid" == "transcript_id"), suffix = c(".qer.irr", ".sub.irr"))
+
+mrna_deg <- select(ampirr, qseqid, sseqid) %>% left_join(select(results_full_amp_degs,transcript_id, log2FoldChange, padj), by = join_by("qseqid" == "transcript_id")) %>% 
+  left_join(select(results_full_amp_degs,transcript_id, log2FoldChange, padj), by =join_by("sseqid" == "transcript_id"), suffix = c(".qer.amp", ".sub.amp")) %>% 
+  left_join(select(results_full_irr_degs, transcript_id, log2FoldChange, padj), by = join_by("qseqid" == "transcript_id")) %>% 
+  left_join(select(results_full_irr_degs, transcript_id, log2FoldChange, padj), by = join_by("sseqid" == "transcript_id"), suffix = c(".qer.irr", ".sub.irr"))
+#############
+
 #amp 318 datos
-filter(diff_rati_olvidados, padj.qer.amp < 0.05 | padj.sub.amp < 0.05) #%>% left_join(select(dlaevis_assembly_uniprt, transcript_id,gene_names),by = join_by("qseqid" == "transcript_id")) %>%  View # hacer un left join con dlaevis para saber el nombre del gen
+#filter(diff_rati_olvidados, padj.qer.amp < 0.05 | padj.sub.amp < 0.05) #%>% left_join(select(dlaevis_assembly_uniprt, transcript_id,gene_names),by = join_by("qseqid" == "transcript_id")) %>%  View # hacer un left join con dlaevis para saber el nombre del gen
 # Gráfica de puntos con valores de padj significativos.
-filter(diff_rati_olvidados, padj.qer.amp < 0.05 | padj.sub.amp < 0.05) %>% ggplot(aes(x = log2FoldChange.sub.amp, y = log2FoldChange.qer.amp)) + geom_point()
+#filter(diff_rati_olvidados, padj.qer.amp < 0.05 | padj.sub.amp < 0.05) %>% ggplot(aes(x = log2FoldChange.sub.amp, y = log2FoldChange.qer.amp)) + geom_point()
 
 #irr 205 datos
-filter(diff_rati_olvidados, padj.qer.irr < 0.05 | padj.sub.irr < 0.05) #%>% View
+#filter(diff_rati_olvidados, padj.qer.irr < 0.05 | padj.sub.irr < 0.05) #%>% View
 # Gráfica de puntos con valores de padj significativos.
-filter(diff_rati_olvidados, padj.qer.irr < 0.05 | padj.sub.irr < 0.05) %>% ggplot(aes(x = log2FoldChange.sub.irr, y = log2FoldChange.qer.irr)) + geom_point()
+#filter(diff_rati_olvidados, padj.qer.irr < 0.05 | padj.sub.irr < 0.05) %>% ggplot(aes(x = log2FoldChange.sub.irr, y = log2FoldChange.qer.irr)) + geom_point()
 
-
-# Filtrado de matches mayores a 300
-
-filtrados <- filter(ampirr, length > 300)
-
-#Joining the Antisense blast table with log2foldchange and padj
-qer_sub_diff <- left_join(select(filtrados, qseqid, sseqid),select(results_full_amp_degs,transcript_id, log2FoldChange, padj), by = join_by("qseqid" == "transcript_id")) %>% 
-left_join(select(results_full_amp_degs,transcript_id, log2FoldChange, padj), by =join_by("sseqid" == "transcript_id"), suffix = c(".qer.amp", ".sub.amp")) %>% 
-left_join(select(results_full_irr_degs, transcript_id, log2FoldChange, padj), by = join_by("qseqid" == "transcript_id")) %>% 
-left_join(select(results_full_irr_degs, transcript_id, log2FoldChange, padj), by = join_by("sseqid" == "transcript_id"), suffix = c(".qer.irr", ".sub.irr"))
+###################################
 
 #query = RNA protein coding
 #target antisense transcript
 
 #amp
-filter(qer_sub_diff, padj.qer.amp < 0.05 | padj.sub.amp < 0.05) # %>% left_join(select(dlaevis_assembly_uniprt, transcript_id,gene_names),by = join_by("qseqid" == "transcript_id")) %>%  View # hacer un left join con dlaevis para saber el nombre del gen
+#filter(qer_sub_diff, padj.qer.amp < 0.05 | padj.sub.amp < 0.05) # %>% left_join(select(dlaevis_assembly_uniprt, transcript_id,gene_names),by = join_by("qseqid" == "transcript_id")) %>%  View # hacer un left join con dlaevis para saber el nombre del gen
 #Gráfica de puntos con valores de padj significativos.
-filter(qer_sub_diff, padj.qer.amp < 0.05 | padj.sub.amp < 0.05) %>% ggplot(aes(x = log2FoldChange.sub.amp, y = log2FoldChange.qer.amp)) + geom_point()
-#irr
-filter(qer_sub_diff, padj.qer.irr < 0.05 | padj.sub.irr < 0.05) %>% View
-#Gráfica de puntos con valores de padj significativos.
-filter(qer_sub_diff, padj.qer.irr < 0.05 | padj.sub.irr < 0.05) %>% ggplot(aes(x = log2FoldChange.sub.irr, y = log2FoldChange.qer.irr)) + geom_point()
 
 ###
-#scripts para poder 
+#scripts para poder
 ###
 
 #Creacion de un DF con el inicio y fin de la prot
@@ -121,7 +116,7 @@ prot<- filter(prot, prot_end != 0)
 
 # Strings antisentido generalmente tienen NA en BlastP
 # juntar prot_coords (end y start), con las coordenadas de matches de query y en sentido positivo
-prot <- left_join(select(filtrados, qseqid, sseqid, length, qstart, qend,sstart, send), prot, by = join_by("qseqid" == "transcript_id")) %>%  filter(prot_start < prot_end)
+prot <- left_join(select(x, qseqid, sseqid, length, qstart, qend,sstart, send), prot, by = join_by("qseqid" == "transcript_id")) %>%  filter(prot_start < prot_end)
 
 # el caso 3, incluye tambien a los del caso 5, y el 4 incluye tambien a los del caso 6, por eso el caso 5 y 6 van primero
 prot$caso <- case_when(
@@ -198,7 +193,7 @@ prot$UTR3porcentaje <- case_when(
   prot$caso == "caso 6" ~ 100,
 )
 
-left_join(select(prot,qseqid,sseqid,caso), qer_sub_diff, by = "qseqid") %>% filter(caso == "caso 6") %>% 
+left_join(select(prot,qseqid,sseqid,caso), mrna_deg, by = "qseqid") %>% filter(caso == "caso 6") %>% 
 ggplot(aes(x = log2FoldChange.sub.amp, y = log2FoldChange.qer.amp)) + geom_point() + labs(title = "DEG relationship between Query and Subject" , subtitle = "DEG Amp", x = "log2foldchange antisense transcript" , y = "log2foldchange RNA protein coding") + theme(plot.title = element_text(hjust = 0.5))
 
 
@@ -242,3 +237,20 @@ prot$porcentaje_en3UTR <- case_when(
 #sugiero menor a 4.8% porque en general estas son 40 bases o menos. hay un transcrito largo (5mil) que tiene un 4.8% en 3UTR que representa aprox 250 bases
 #ilter(prot, porcentaje_en5UTR < 5 & porcentaje_en5UTR > 0) %>%  View
 #o que por caso, la diferencia sea de 10 bases o menos
+
+# base de datos por experimento. separar base de datos por condicion
+
+#amp <- swissProt_self_blastAStranscripts left join con longitudes
+#irr <- swissProt_self_blastAStranscripts left join con longitudes
+#ampirr <- ampirr %>% mutate(diff_ratio_ampirr.qer = ((plus_strand_1stReads.amp.qer + plus_strand_1stReads.irr.qer) - (minus_strand_1stReads.amp.qer + minus_strand_1stReads.irr.qer))/(total_reads.amp.qer + total_reads.irr.qer))
+#ampirr <- left_join(ampirr, ss_analysisAMP, by = join_by("sseqid" == "transcript_id"))
+#ampirr <- left_join(ampirr, ss_analysisIrr, by = join_by("sseqid" == "transcript_id"), suffix = c(".amp.target", ".irr.target"))
+#ampirr <- ampirr %>% mutate(diff_ratio_ampirr.target = ((plus_strand_1stReads.amp.target + plus_strand_1stReads.irr.target) - (minus_strand_1stReads.amp.target + minus_strand_1stReads.irr.target))/(total_reads.amp.target + total_reads.irr.target))
+
+
+#basea mean y logfoldchange TABLA NUEVA: qseqid,sseqid, basemean, log2foldChange y padj.
+
+ampirr_basemean <- left_join(select(ampirr, qseqid, sseqid),select(results_full_amp_degs,transcript_id, log2FoldChange, padj, baseMean), by = join_by("qseqid" == "transcript_id")) %>% 
+  left_join(select(results_full_amp_degs,transcript_id, log2FoldChange, padj, baseMean), by =join_by("sseqid" == "transcript_id"), suffix = c(".qer.amp", ".sub.amp")) %>% 
+  left_join(select(results_full_irr_degs, transcript_id, log2FoldChange, padj, baseMean), by = join_by("qseqid" == "transcript_id")) %>% 
+  left_join(select(results_full_irr_degs, transcript_id, log2FoldChange, padj, baseMean), by = join_by("sseqid" == "transcript_id"), suffix = c(".qer.irr", ".sub.irr"))
