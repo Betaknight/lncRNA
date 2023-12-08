@@ -14,9 +14,13 @@ Histograms showing the diff-ratios of query (mRNA) and target (lncRNA)
 in both amputated/irradiated conditions.
 
 The high proportion of minus-sense reads suggests accurate transcript
-assembly **Opciones de conclusiones** 1.-The predominance of minus-sense
-reads strengthens the belief that the assembled transcripts are faithful
-representations of the original molecules.
+assembly
+
+**Opciones de conclusiones**
+
+1.-The predominance of minus-sense reads strengthens the belief that the
+assembled transcripts are faithful representations of the original
+molecules.
 
 2.-The substantial proportion of minus-sense reads strongly supports the
 conclusion that the assembled transcripts accurately represent the
@@ -57,42 +61,37 @@ ggplot(data = ampirr, aes(x = diff_ratio_ampirr.target)) + geom_histogram() +
 
 Expresión diferencial para las condiciones de amputación y radiación
 
-\#Padj significativa en los 4 cuadrantes con todos los datos
+# Padj significativa en los 4 cuadrantes con todos los datos
 
 SelfBlast is a data frame that shows the alignment of a query transcript
 (mRNA) with a subject transcript (lncRNA). BLAST identifies some queries
 (mRNA) that have alignments with more than one subject (lncRNA).
 SelfBlast has 9,930 unique query (mRNA) transcript IDs.
 
-Data frames based on SelfBlast and adding log2FoldChange and Padj
-columns. From the 80,000 entries, we kept only the with the entries padj
-\< 0.05.
+The following data frames are based on SelfBlast plus the values of
+log2FoldChange and Padj. From the 80,000 entries, we kept only the with
+the entries padj \< 0.05.
 
-\##Irradiated
+## Irradiated
 
-\###mRNA (Query)
+### mRNA (Query)
 
 Filtering Padj \< 0.05 for mRNA/query
 
-── Data Summary ──────────────────────── Values  
-Number of rows **223**  
-Number of columns 10  
-── Variable type: character
-────────────────────────────────────────────────────────────────────
-skim_variable n_unique 1 qseqid 25 2 sseqid 217
+Number of rows: 223
 
-── Variable type: numeric
-──────────────────────────────────────────────────────────────────────
-skim_variable n_missing complete_rate mean sd p0 p25 p50 5
-log2FoldChange.qer.irr 0 1 -1.22 4.51 -2.33e+ 1 -5.54 -1.11  
-6 padj.qer.irr 0 1 0.0180 0.0159 3.79e-10 0.00434 0.0190 7
-log2FoldChange.sub.irr 8 0.964 0.0538 0.983 -3.49e+ 0 -0.469 0.112 8
-padj.sub.irr 113 0.493 0.994 0.0442 5.52e- 1 1.00 1.00
+| Variable           |  NA | complete_rate | unique |  mean |     p0 |   p25 |   p50 |
+|:-------------------|----:|--------------:|-------:|------:|-------:|------:|------:|
+| qseqid             |   0 |          1.00 |     25 |    NA |     NA |    NA |    NA |
+| sseqid             |   0 |          1.00 |    217 |    NA |     NA |    NA |    NA |
+| log2FoldChange.qer |   0 |          1.00 |     NA | -1.21 | -23.26 | -5.54 | -1.10 |
+| padj.qer           |   0 |          1.00 |     NA |  0.01 |   0.00 | 0.004 |  0.01 |
+| log2FoldChange.sub |   8 |          0.96 |     NA |  0.05 |  -3.48 | -0.46 |  0.11 |
+| padj.sub           | 113 |          0.49 |     NA |  0.99 |   0.55 |  0.99 |  0.99 |
 
-Filtering with Padj \< 0.05 for mRNA/query, we have a total of 223
-entries. Of these entries, 113 rows contain NAs in the subject Padj
-column (only the 49% of the entries have a value) and 8 NAs in the
-log2FoldChange subject column.
+We have a total of 223 entries. Of these entries, 113 rows contain NAs
+in the subject Padj column (only the 49% of the entries have a value)
+and 8 NAs in the log2FoldChange subject column.
 
 ``` r
 #Script para el skim
@@ -122,23 +121,22 @@ observed that TRINITY_DN5414_c2_g1_i3 aligns with 3 different lncRNAs.
 PS: Notice how the axis X goes from -3 to 3, which means that the
 lncRNAs barely change and it wasn’t significant.
 
-\###lncRNA (Subject) Filtering Padj \< 0.05 for subject/lncRNA
+### lncRNA (Subject)
+
+Filtering Padj \< 0.05 for subject/lncRNA
 
 ── Data Summary ──────────────────────── Values  
 Name Piped data Number of rows 101  
 Number of columns 10
 
-── Variable type: character
-────────────────────────────────────────────────────────────────────
-skim_variable n_unique 1 qseqid 88 2 sseqid 28
-
-── Variable type: numeric
-──────────────────────────────────────────────────────────────────────
-skim_variable n_missing complete_rate mean sd p0 p25 p50 5
-log2FoldChange.qer.irr 2 0.980 0.371 1.22 -2.17e+ 0 -0.190 0.132 6
-padj.qer.irr 32 0.683 0.974 0.111 3.88e- 1 1.00 1.00  
-7 log2FoldChange.sub.irr 0 1 0.615 2.95 -6.94e+ 0 -1.16 1.04  
-8 padj.sub.irr 0 1 0.0216 0.0183 1.77e-12 0.000579 0.0233
+| Variable           |  NA | complete_rate | n_unique | mean |    p0 |   p25 |  p50 |
+|:-------------------|----:|--------------:|---------:|-----:|------:|------:|-----:|
+| qseqid             |   0 |          1.00 |       88 |   NA |    NA |    NA |   NA |
+| sseqid             |   0 |          1.00 |       28 |   NA |    NA |    NA |   NA |
+| log2FoldChange.qer |   2 |          0.98 |       NA | 0.37 | -2.17 | -0.19 | 0.13 |
+| padj.qer           |  32 |          0.68 |       NA | 0.97 |  0.38 |  0.99 | 0.99 |
+| log2FoldChange.sub |   0 |          1.00 |       NA | 0.61 | -6.93 | -1.15 | 1.03 |
+| padj.sub           |   0 |          1.00 |       NA | 0.02 |  0.00 |  0.00 | 0.02 |
 
 Filtering with Padj \< 0.05 for subject/lncRNA, we have a total of 101
 entries. Of these entries, 32 rows contain NAs in the query Padj column
@@ -153,7 +151,7 @@ filter(mrna_deg, padj.sub.irr < 0.05) %>%
   geom_point() +
   geom_hline(yintercept = 0) +
   geom_vline(xintercept = 0) +
-labs(title = "Expresion diferencial significativa en A",
+labs(title = "lncRNA diferential expressed",
      x = "log2Fold change lncRNA",
      y = "log2Fold change mRNA")
 ```
@@ -171,25 +169,24 @@ unchanged. Across these graphics, we may be particularly interested in
 cases where one transcript exhibits differential expression while the
 other does not.
 
-\##Amputated
+## Amputated
 
-\###mRNA (query) Filtering Padj \< 0.05 for query/mRNA
+### mRNA (query)
+
+Filtering Padj \< 0.05 for query/mRNA
 
 ── Data Summary ──────────────────────── Values  
 Name Piped data Number of rows **293**  
 Number of columns 10
 
-── Variable type: character
-────────────────────────────────────────────────────────────────────
-skim_variable n_unique 1 qseqid 51 2 sseqid 268
-
-── Variable type: numeric
-──────────────────────────────────────────────────────────────────────
-skim_variable n_missing complete_rate mean sd p0 p25 p50  
-1 log2FoldChange.qer.amp 0 1 -0.897 4.03 -7.83e+ 0 -5.46 0.446  
-2 padj.qer.amp 0 1 0.0135 0.0108 5.62e-22 0.00341 0.0139 3
-log2FoldChange.sub.amp 11 0.962 0.225 1.76 -3.02e+ 0 -0.321 0.0135  
-4 padj.sub.amp 76 0.741 0.835 0.211 2.40e- 5 0.759 0.933
+| variable           |  NA | complete_rate | n_unique |  mean |       p0 |   p25 |  p50 |
+|:-------------------|----:|--------------:|---------:|------:|---------:|------:|-----:|
+| qseqid             |   0 |          1.00 |       51 |    NA |       NA |    NA |   NA |
+| sseqid             |   0 |          1.00 |      268 |    NA |       NA |    NA |   NA |
+| log2FoldChange.qer |   0 |          1.00 |       NA | -0.89 |    -7.83 | -5.46 | 0.44 |
+| padj.qer           |   0 |          1.00 |       NA |  0.01 |     0.00 | 0.003 | 0.01 |
+| log2FoldChange.sub |  11 |          0.96 |       NA |  0.22 |    -3.02 | -0.32 | 0.01 |
+| padj.sub           |  76 |          0.74 |       NA |  0.83 | 0.000024 |  0.75 | 0.93 |
 
 A total of 293 entries, 11 rows with NA for log2FoldChange subject
 column, and 76 NAs for padj.
@@ -201,7 +198,10 @@ filter(mrna_deg, padj.qer.amp < 0.05) %>%
   ggplot(aes(x = log2FoldChange.sub.amp, y = log2FoldChange.qer.amp)) +
   geom_point() +
   geom_hline(yintercept = 0) +
-  geom_vline(xintercept = 0)
+  geom_vline(xintercept = 0) +
+labs(title = "mRNA diferential expressed",
+     x = "log2Fold change lncRNA",
+     y = "log2Fold change mRNA")
 ```
 
     ## Warning: Removed 11 rows containing missing values (`geom_point()`).
@@ -209,66 +209,80 @@ filter(mrna_deg, padj.qer.amp < 0.05) %>%
 ![](gitlncRNA_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
 This graphic is interesting because we observe a log2FoldChange value of
-22.9 for one lncRNA transcript, but there is no corresponding Padj
-value. However, in this graphic, we are interested in the dots that have
-non-zero values on the Y-axis and values close to zero on the X-axis.
+22.9 for one lncRNA transcript, but in the data frame there is no
+corresponding Padj value. However, in this graphic, we are interested in
+the dots that have non-zero values on the Y-axis and values close to
+zero on the X-axis.
 
-\##lncRNA (subject) Filtering Padj \< 0.05 for subject/lncRNA
+## lncRNA (subject)
+
+Filtering Padj \< 0.05 for subject/lncRNA
 
 ── Data Summary ──────────────────────── Values  
 Name Piped data Number of rows **149**  
 Number of columns 10
 
-── Variable type: character
-────────────────────────────────────────────────────────────────────
-skim_variable n_unique 1 qseqid 134 2 sseqid 59
-
-── Variable type: numeric
-──────────────────────────────────────────────────────────────────────
-skim_variable n_missing complete_rate mean sd p0 p25 p50 1
-log2FoldChange.qer.amp 2 0.987 0.158 1.18 -5.46e+ 0 -0.351 -0.0539 2
-padj.qer.amp 14 0.906 0.800 0.212 5.62e-22 0.663 0.893  
-3 log2FoldChange.sub.amp 0 1 0.488 2.62 -7.77e+ 0 -0.984 1.22  
-4 padj.sub.amp 0 1 0.0164 0.0171 1.58e-17 0.000330 0.00611
+| variable           |  NA | complete_rate | n_unique |  mean |    p0 |     p25 |   p50 |
+|:-------------------|----:|--------------:|---------:|------:|------:|--------:|------:|
+| qseqid             |   0 |          1.00 |      134 |    NA |    NA |      NA |    NA |
+| sseqid             |   0 |          1.00 |       59 |    NA |    NA |      NA |    NA |
+| log2FoldChange.qer |   2 |          0.98 |       NA |  0.15 | -5.46 |   -0.35 | -0.05 |
+| padj.qer           |  14 |          0.90 |       NA |  0.80 |  0.00 |    0.66 |  0.89 |
+| log2FoldChange.sub |   0 |          1.00 |       NA |  0.48 | -7.77 |   -0.98 |  1.21 |
+| padj.sub           |   0 |          1.00 |       NA | 0.016 |  0.00 | 0.00033 | 0.006 |
 
 For this case, we have 149 entries and only 2 NAs for the log2FoldChange
 query column and 14 for the padj query column.
 
 ``` r
+#filter(mrna_deg, padj.sub.amp < 0.05) %>% skim_without_charts()
 filter(mrna_deg, padj.sub.amp < 0.05) %>%
   ggplot(aes(x = log2FoldChange.sub.amp, y = log2FoldChange.qer.amp)) +
   geom_point() +
   geom_hline(yintercept = 0) +
-  geom_vline(xintercept = 0)
+  geom_vline(xintercept = 0) +
+labs(title = "lncRNA diferential expressed",
+     x = "log2Fold change lncRNA",
+     y = "log2Fold change mRNA")
 ```
 
     ## Warning: Removed 2 rows containing missing values (`geom_point()`).
 
 ![](gitlncRNA_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
-Here we observe significant values for lncRNAs (subject). Our focus is
-on the dots that exhibit non-zero values on the X-axis and values close
-to zero on the Y-axis. This graphic includes lncRNAs for which BLAST
-identified alignments with more than one mRNA.
+Here we observe significant values for lncRNAs (subject). This graphic
+includes lncRNAs for which BLAST identified alignments with more than
+one mRNA.
 
-\##Casos de Alinieamiento
+**ANOTACIONES PARA DEG**
 
-Descripción de casos: caso 1 El alineamiento es solamente dentro del CDS
-caso 2 El alineamiento es tan largo que cae en las 3 zonas (5UTR, CDS y
-3UTR) caso 3 El alineamiento empieza en la zona 5UTR y termina dentro de
-CDS caso 4 El alineamiento empieza en la zona de CDS y termina en 3UTR
-caso 5 El alineamiento es solamente en la zona 5UTR caso 6 El
-alineamiento es solamente en la zona 3UTR
+## Casos de Alinieamiento
+
+Descripción de casos:
+
+-caso 1 El alineamiento es solamente dentro del CDS
+
+-caso 2 El alineamiento es tan largo que cae en las 3 zonas (5UTR, CDS y
+3UTR)
+
+-caso 3 El alineamiento empieza en la zona 5UTR y termina dentro de CDS
+
+-caso 4 El alineamiento empieza en la zona de CDS y termina en 3UTR
+
+-caso 5 El alineamiento es solamente en la zona 5UTR
+
+-caso 6 El alineamiento es solamente en la zona 3UTR
 
 ``` r
-prot %>% ggplot(aes(x = caso)) + geom_histogram(stat = "count") + labs(title = "La mayoría de alineamientos son solamente en la zona 3UTR" ,subtitle = "Distribución de casos")
+prot %>% ggplot(aes(x = caso)) + geom_histogram(stat = "count") + labs(title = "Most of the alignments are only in the 3'UTR area" ,subtitle = "Cases distribution")
 ```
 
 ![](gitlncRNA_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
-\#Código para histogramas Histogramas Cuando el alineamiento es en la
-zona de CDS, la mayoría de alineamientos en la zona de CDS se alinea con
-el 50% del
+# Código para histogramas
+
+Histogramas Cuando el alineamiento es en la zona de CDS, la mayoría de
+alineamientos en la zona de CDS se alinea con el 50% del
 
 ``` r
 prot %>% filter(CDSporcentaje>0) %>%   ggplot(aes(x = CDSporcentaje)) + geom_histogram()
@@ -305,30 +319,35 @@ zona CDS)
 
 **ANOTACIONES PARA LOS CASOS**
 
-**ANOTACIONES PARA DEG**
+Es importante destacar que de los datos originales, cerca de 80mil, se
+hizo un “unique” para quitar los valores repetidos, el data frame paso a
+ser de 40mil datos, luego se filtró para quitar las filas que tenía NA
+en la columna de “inicio de proteina” y “final de proteína” es decir que
+no tenian las coordenadas de la proteína. Con eso nos quedamos con 25mil
+datos. Se hizo un último filtro para quedarnos solo con las proteínas
+que están en sentido. Es decir que el inicio de la proteína sea menor al
+final de la proteína.
 
-    Pearson's product-moment correlation
-
-data: x$log2FoldChange.sub.amp and x$log2FoldChange.qer.amp t = 22.313,
-df = 21331, p-value \< 2.2e-16 alternative hypothesis: true correlation
-is greater than 0 95 percent confidence interval: 0.1400006 1.0000000
-sample estimates: cor 0.1510244
-
-\##Explicación sobre los DF
+## Explicación sobre los DF
 
 Descripción del trabajo
 
-DF de expresión diferencial: -**results_full_amp_degs**
--**results_full_irr_degs**
+**DF de expresión diferencial**:
 
-DF resultados del blast con transcritos antisentido:
--**swissProt_self_blastAStranscripts**
+-results_full_amp_degs
 
-DF con anotaciones de BLASTX, prot ID, prot corrds, BLASTP, ontología,
-nombre de los genes, organismos en el que se encuentra, length, etc
--**dlaevis_assembly_uniprt**
+-results_full_irr_degs
 
-Data frames creadas:
+**DF resultados del blast con transcritos antisentido**:
+
+-swissProt_self_blastAStranscripts
+
+**DF con anotaciones de BLASTX, prot ID, prot corrds, BLASTP, ontología,
+nombre de los genes, organismos en el que se encuentra, length, etc** :
+
+-dlaevis_assembly_uniprt
+
+## Data frames creadas:
 
 \-**ampirr**: 32 columnas, 79mil filas Tomando como base el DF
 swissProt, se hizzo un left join de los DF de DEG. Además se hizo otro
@@ -337,23 +356,33 @@ left join con las longitudes
 ampirr tiene 79mil entradas porque a veces un transcrito de query, hace
 match con diferentes subjects. En total hay 9930 queries diferentes.
 
-\-**Filtrados**:32 collumnas, 23mil filas.
+**-longitudes:** DF con las longitudes totales de los transcritos, esto
+se hizo utilizando un archivo fasta y utilizando grep
 
-Tomando como base el DF ampirr, se hizo un filtro para seleccionar a los
-transcritos mayores a 300. El df filtrado contiene 23639 entradas, es
-decir, se quedarón fuera 50mil datos aprox
+\-**X** El data frame x se hizo tomando como base ampirr y juntando los
+datos de log2FoldChange y padj de ambas condiciones.
 
-\-**qer_sub_diff**:10 coulmnas, 23mil filas
+\-**mrna_deg** El data frame mrna_deg se hizo tomando como base ampirr y
+juntando los datos de log2FoldChange y padj de ambas condiciones.
+Después
 
-tomando como base filtrados. Se hicieron left joins para agregar los
-datos de log2FoldChange y padj para qseqid y sseqid de ambas condiciones
-(amp y irr)
+\-**Filtrados**:32 collumnas, 23mil filas. Tomando como base el DF
+ampirr, se hizo un filtro para seleccionar a los transcritos mayores a
+300. El df filtrado contiene 23639 entradas, es decir, se quedarón fuera
+50mil datos aprox
+
+\-**qer_sub_diff**:10 coulmnas, 23mil filas. Tomando como base
+filtrados. Se hicieron left joins para agregar los datos de
+log2FoldChange y padj para qseqid y sseqid de ambas condiciones (amp y
+irr)
 
 \-**medianos**: esta tabla tiene los 50mil datos que fueron excluidos en
 el DF filtrados, es decir, aquí hay transcritos de entres 200 y 300
-nucleotidos. -**diff_rati_olvidados**: al DF olvidados, se le agregó los
-datos de log2FoldChange Gráficas con DEG de los olvidados con valores de
-padj menores a 0.05
+nucleotidos.
+
+\-**diff_rati_olvidados**: al DF olvidados, se le agregó los datos de
+log2FoldChange Gráficas con DEG de los olvidados con valores de padj
+menores a 0.05
 
 **prot**: Se seleccionó unicamente las columnas de trasncript_id y prot
 coords del DF dlaevis_assembly_uniprt. Con código se separo prot coords
