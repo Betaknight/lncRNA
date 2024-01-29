@@ -1,7 +1,7 @@
 Some_statistics
 ================
 Jeronimo Miranda
-2023-11-22
+2024-01-29
 
 ## Transcript classification
 
@@ -15,7 +15,8 @@ at the RNA level but for which transdecoder could not find a long enough
 ORF. We assume for now that these are either artifactual or
 non-functional isoforms and are marked as *“nonsense”*. Later, if a gene
 has at least one nonsense transcript, and no transcripts with coding
-potential, we will classify this gene as a pseudogene.
+potential, we will classify this gene as a pseudogene. The following
+graph info comes from the dataframe `transcript_classification`.
 
 ![](SomeStatistics_files/figure-gfm/Coding%20and%20non%20coding%20transcripts-1.png)<!-- -->
 

@@ -19,6 +19,8 @@ source("1_someStatistics_backgroundScript.R")
 
 ## Transcript classification
 We took the information of which mRNAs are protein coding from Transdecoder. More than 400,000 out of the 464,338 transcripts do not code for a detectable peptide. Afterwards, to have an idea of annotation, we use TRinotate that aligns with blastn and tblastn against the uniprot database to find putative orthologs. There is also a small but significant population of transcripts that have a significant match at the RNA level but for which transdecoder could not find a long enough ORF. We assume for now that these are either artifactual or non-functional isoforms and are marked as *"nonsense"*. Later, if a gene has at least one nonsense transcript, and no transcripts with coding potential, we will classify this gene as a pseudogene.
+The following graph info comes from the dataframe `transcript_classification`.
+
 
 ```{r Coding and non coding transcripts, echo=FALSE, message=FALSE, warning=FALSE}
 data_donut <- transcript_classification %>% ungroup %>% group_by(rna_type) %>%
