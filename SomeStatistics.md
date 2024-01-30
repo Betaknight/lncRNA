@@ -1,7 +1,7 @@
 Some_statistics
 ================
 Jeronimo Miranda
-2023-11-13
+2024-01-29
 
 ## Transcript classification
 
@@ -15,7 +15,8 @@ at the RNA level but for which transdecoder could not find a long enough
 ORF. We assume for now that these are either artifactual or
 non-functional isoforms and are marked as *“nonsense”*. Later, if a gene
 has at least one nonsense transcript, and no transcripts with coding
-potential, we will classify this gene as a pseudogene.
+potential, we will classify this gene as a pseudogene. The following
+graph info comes from the dataframe `transcript_classification`.
 
 ![](SomeStatistics_files/figure-gfm/Coding%20and%20non%20coding%20transcripts-1.png)<!-- -->
 
@@ -32,7 +33,12 @@ one peptide. The relationship between transcripts and peptides is
 one-to-many, though, because one transcript has six possible reading
 frames and could even code for more than one peptide in the same reading
 frame. This is reflected in the 70,572 unique prot_id’s from the
-transdecoder file.
+transdecoder file. \#ANOTACION “…The next classification, pertains to
+peptides and so, will only apply to the 60,247 transcripts…” Yo usaría
+“pertaining” en lugarde “petains” pero checando con Google bard ambas
+son correctas. Google bard sugiere esto para hacerlo mas formal: The
+next classification, which pertains to peptides, will only apply to the
+60,247 transcripts.
 
 ![](SomeStatistics_files/figure-gfm/coding%20transcripts-1.png)<!-- -->
 
@@ -107,7 +113,8 @@ the transcriptome median (log(389) = 5.95). There is also a sort of
 bimodal distribution in the log transformed length data for the ORF
 containing transcripts that could be explored later. Overall, we can
 conclude that a good portion of the non-coding transcriptome is shorter
-than 400 nucleotides.
+than 400 nucleotides. \#ANOTACION Creo que el inicio de este párrafo hay
+que checarlo.
 
 ![](SomeStatistics_files/figure-gfm/log%20length%20by%20coding%20potential-1.png)<!-- -->
 
@@ -177,7 +184,51 @@ true novel gasteropod or mollusc transcripts.
 
 ![](SomeStatistics_files/figure-gfm/unnanotated%20ORF%20size%20distribution-1.png)<!-- -->
 
-## Antisense transcripts
+## Untranslated regions
+
+Now we would like to look into the untranslated regions and check their
+length distribution. This will be important when we map where the
+antisense transcripts are hybridizing to the ORF.
+
+#### 5’ Unstranslated regions
+
+![](SomeStatistics_files/figure-gfm/utr5%20size-1.png)<!-- -->
+
+The log10 transformed data for 5’ UTR sizes looks roughly log normal.
+The very small UTRs showing as columns to the left of the x-axis could
+be due to assembly/sequencing artifacts. Interestingly, both the
+*unnanotated* and *Swissprot* categories are within 100-1000
+nucleotides, while the 5’UTR of the *Truncated* ORF mRNAs are longer
+than 1000.
+
+#### 3’UTR
+
+The sizes of 3’ UTRs are somewhat similar. If maybe they tend to be
+longer, towards 1kb. There does not seem to be a huge difference in the
+number 3’UTRs that are too short. In fact, I leave the warning for this
+one because the log10 transformation erased 3’ UTRs with 0 values.
+Something that did not happen with the 5’UTR.
+
+    ## Warning: Transformation introduced infinite values in continuous x-axis
+
+    ## Warning: Removed 3608 rows containing non-finite values (`stat_bin()`).
+
+![](SomeStatistics_files/figure-gfm/size%20of%203%20utr-1.png)<!-- -->
+
+As said, the log10 transformed distributions look similar. This makes me
+wonder whether there is a correlation between 5’ and 3’ utr lengths.
+There does not seem to be a clear correlation, a transcript can have 0
+length 5’ and 3’ or just one or the other. In general, though, there is
+a tendency for *Swissprot* annotated transcripts to have a longer 3’UTR.
+This does not hold true for *truncated* or *unnanotated* transcripts.
+
+``` r
+trinotate_wORFsize %>% filter(strand == "+") %>% transmute(transcript_id, utr5 = as.integer(prot_begin), prot_length, utr3 = as.integer(total_length) - as.integer(prot_end), total_length, peptide_type) %>%  ggplot(aes(utr3, utr5)) + geom_density2d_filled() + geom_point(alpha = 0.1, size = 0.1) + scale_x_log10() + scale_y_log10() + facet_wrap(~peptide_type) + theme_bw() + labs(title = "No correlation between 5' and 3' UTR sizes", subtitle = "log10 transformed UTR size for different peptide classes", x = "3' UTR length (nucleotides)", y ="5' UTR length (nucleotides)")  + theme(legend.position = 'none')
+```
+
+![](SomeStatistics_files/figure-gfm/utr%20correlation-1.png)<!-- -->
+
+# Antisense transcripts
 
 These sequences were then aligned back to the whole transcriptome with
 blastn. The resulting alignments were filtered to be plus/minus
