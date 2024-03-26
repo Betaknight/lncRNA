@@ -222,6 +222,28 @@ Descripción de casos:
 prot %>% ggplot(aes(x = caso)) + geom_histogram(stat = "count") + labs(title = "Most of the alignments are only in the 3'UTR area" ,subtitle = "Cases distribution")
 ```
 
+| skim_variable     |  NA | complete_rate | character.n_unique | numeric.mean | numeric.sd | numeric.p0 | numeric.p25 | numeric.p50 | numeric.p75 | numeric.p100 |
+|:------|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|
+| qseqid            |   0 |     1.0000000 |               4405 |           NA |         NA |         NA |          NA |          NA |          NA |           NA |
+| sseqid            |   0 |     1.0000000 |              13543 |           NA |         NA |         NA |          NA |          NA |          NA |           NA |
+| caso              |   0 |     1.0000000 |                  6 |           NA |         NA |         NA |          NA |          NA |          NA |           NA |
+| length            |   0 |     1.0000000 |                 NA |   297.831935 |  196.77553 |        201 |   215.00000 |         241 |         301 |    5187.0000 |
+| qstart            |   0 |     1.0000000 |                 NA |  2578.396250 | 1986.58686 |          1 |  1303.00000 |        2223 |        3484 |   20202.0000 |
+| qend              |   0 |     1.0000000 |                 NA |  2870.882593 | 1973.89691 |        190 |  1581.00000 |        2496 |        3789 |   20424.0000 |
+| sstart            |   0 |     1.0000000 |                 NA |   538.074830 |  669.93371 |        180 |   239.00000 |         302 |         491 |   10062.0000 |
+| send              |   0 |     1.0000000 |                 NA |   245.637073 |  619.15795 |          1 |     1.00000 |          28 |         165 |    9865.0000 |
+| prot_start        |   0 |     1.0000000 |                 NA |   465.817708 |  732.76113 |          1 |   101.00000 |         259 |         489 |   13456.0000 |
+| prot_end          |   0 |     1.0000000 |                 NA |  2312.752754 | 1643.52325 |        597 |  1227.00000 |        1794 |        2836 |   19243.0000 |
+| CDS_length        |   0 |     1.0000000 |                 NA |  1846.935046 | 1542.81623 |        596 |   878.00000 |        1328 |        2216 |   19190.0000 |
+| total_length      |   0 |     1.0000000 |                 NA |  3506.753824 | 2017.25632 |        597 |  2138.00000 |        2994 |        4482 |   20424.0000 |
+| UTR_3             |   0 |     1.0000000 |                 NA |  1194.001070 | 1023.40901 |          0 |   507.00000 |         896 |        1640 |   16848.0000 |
+| UTR5porcentaje    |   0 |     1.0000000 |                 NA |    10.996569 |   30.86922 |          0 |     0.00000 |           0 |           0 |     100.0000 |
+| CDSporcentaje     |   0 |     1.0000000 |                 NA |     5.656052 |   15.08320 |          0 |     0.00000 |           0 |           0 |     103.1348 |
+| UTR3porcentaje    |  14 |     0.9995166 |                 NA |    74.566491 |   43.00125 |          0 |    28.74332 |         100 |         100 |     100.0000 |
+| porcentaje_en5UTR |   0 |     1.0000000 |                 NA |    10.476978 |   30.02831 |          0 |     0.00000 |           0 |           0 |     100.0000 |
+| porcentaje_enCDS  |   0 |     1.0000000 |                 NA |    15.974258 |   35.19095 |          0 |     0.00000 |           0 |           0 |     100.0000 |
+| porcentaje_en3UTR |   0 |     1.0000000 |                 NA |    73.653105 |   43.19891 |          0 |    14.56954 |         100 |         100 |     100.0000 |
+
 # Código para histogramas
 
 Histogramas Cuando el alineamiento es en la zona de CDS, la mayoría de alineamientos en la zona de CDS se alinea con el 50% del
@@ -252,17 +274,17 @@ Es importante destacar que de los datos originales, cerca de 80mil, se hizo un "
 
 Descripción del trabajo
 
-**DF de expresión diferencial**:
+**DF de expresión diferencial**: Son bases de datos creadas por Will, que contiene datos relacionados con la DEG.
 
 -results_full_amp_degs
 
 -results_full_irr_degs
 
-**DF resultados del blast con transcritos antisentido**:
+**DF resultados del blast con transcritos antisentido**: Este es el "SelfBlast" es decir que se tomaron los transcritos que codifican para almenos algún péptido y BLAST busco alineamientos con el transcriptoma (es decir con los 400mil transcritos que se obtuvieron con Trinity).
 
 -swissProt_self_blastAStranscripts
 
-**DF con anotaciones de BLASTX, prot ID, prot corrds, BLASTP, ontología, nombre de los genes, organismos en el que se encuentra, length, etc** :
+**DF con anotaciones:** Contiene todo tipo de anotaciones de BLASTX, prot ID, prot coords, BLASTP, ontología, nombre de los genes, organismos en el que se encuentra, length, etc
 
 -dlaevis_assembly_uniprt
 
@@ -287,3 +309,13 @@ ampirr tiene 79mil entradas porque a veces un transcrito de query, hace match co
 \-**diff_rati_olvidados**: al DF olvidados, se le agregó los datos de log2FoldChange Gráficas con DEG de los olvidados con valores de padj menores a 0.05
 
 **prot**: Se seleccionó unicamente las columnas de trasncript_id y prot coords del DF dlaevis_assembly_uniprt. Con código se separo prot coords en dos columnas (prot_start y prot_end). Se eliminaron las filas con NA en prot coord Se hizo un left join en prot con filtrados para agregar los datos de "qseqid, sseqid, length, qstart, qend,sstart, send" Se filtró para tener únicamente los datos en el que van en sentido Se agregaron columnas con los datos de CDS_length y URT_3 Se hicieron las columnas de los casos, porcentaje de zona cubierto, y porcentaje del lnc en cada zona.
+
+### Perspectivas:
+
+Analizar los "casos" y ver si vale la pena reasignarlos.
+
+En el DF "prot" hay columnas que describen como se distribuye el alineamiento lncRNa/mRNA (pocentaje_en\*) específicamente dice qué porcentaje del alineamiento queda en cada una de las zonas. La suma de estas 3 columnas debe dar el 100%.
+
+Modelaje
+
+para un mRNA especifico, podemos observar que la mayoria de lncRNAs con los que se alinea, se alinea en la zona 3UTR. eg.TRINITY_DN82_c1_g1_i1 se alinea con 20 diferentes lncRNAs, de esos alinieamientos, 17 son solo en la zona 3UTR

@@ -19,9 +19,9 @@ results_full_amp_degs <- read_csv(paste0(directorio,"/data/results_full_amp_degs
                                   col_types = cols(...8 = col_skip()))
 
 results_full_irr_degs <- read_csv(paste0(directorio,"/data/results_full_irr_degs.csv"), 
-                                  col_types = cols(...8 = col_skip()))
-
-#cargar resutados de expresion diferencial
+                                 col_types = cols(...8 = col_skip()))
+# Creacion y limpieza de df ####
+#cargar resutados de expresion diferencial y arreglar nombres
 colnames(results_full_amp_degs)[1] <- "transcript_id"
 colnames(results_full_irr_degs)[1] <- "transcript_id"
 
@@ -43,6 +43,7 @@ View(ss_analysisIrr)
 colnames(ss_analysisAMP)[1] <- "transcript_id"
 colnames(ss_analysisIrr)[1] <- "transcript_id"
 
+## ampirr ####
 #Union de los reads plus, minus, total strands y diff ratio de AMP e IRR con query y target
 
 ampirr <- left_join(swissProt_self_blastAStranscripts, ss_analysisAMP, by = join_by("qseqid" == "transcript_id"))
@@ -55,20 +56,15 @@ ampirr <- ampirr %>% mutate(diff_ratio_ampirr.target = ((plus_strand_1stReads.am
 #length of mRNAs
 longitudes <- read_table(paste0(directorio,"/data/longitudes.txt"), 
                          col_names = FALSE)
-View(longitudes)
 
 colnames(longitudes) <- c("transcript_id", "total_length")
 ampirr <- inner_join(ampirr, longitudes, by = join_by("qseqid" == "transcript_id"))
 ampirr <- inner_join(ampirr, longitudes, by = join_by("sseqid" == "transcript_id"), suffix = c(".qer", ".target"))
 
-#length distribution en escala log10 of mRNAs
-select(ampirr, qseqid, total_length.qer) %>% unique() %>% ggplot() + geom_histogram(aes(x =total_length.qer)) + scale_x_log10()
-
 #código para definir la escala del eje X y cúantos habrá- binwith= contenedor/ ancho bidireccional?* ggplot()) + geom_histogram(binwidth = 200) + scale_x_continuous(n.breaks = 10)
-
 select(ampirr, qseqid, total_length.target) %>% unique() %>% ggplot() + geom_histogram(aes(x =total_length.target)) + scale_x_log10()
 
-
+## mrna_deg y x ####
 # dataframes de juntando los datos de log2FoldChange y padj con ampirr, tanto x como mrna_deg son exactamente iguales, solo que mrna_deg será filtrada mas adelante
 x <- ampirr %>% left_join(select(results_full_amp_degs,transcript_id, log2FoldChange, padj), by = join_by("qseqid" == "transcript_id")) %>% 
   left_join(select(results_full_amp_degs,transcript_id, log2FoldChange, padj), by =join_by("sseqid" == "transcript_id"), suffix = c(".qer.amp", ".sub.amp")) %>% 
@@ -80,14 +76,13 @@ mrna_deg <- select(ampirr, qseqid, sseqid) %>% left_join(select(results_full_amp
   left_join(select(results_full_irr_degs, transcript_id, log2FoldChange, padj), by = join_by("qseqid" == "transcript_id")) %>% 
   left_join(select(results_full_irr_degs, transcript_id, log2FoldChange, padj), by = join_by("sseqid" == "transcript_id"), suffix = c(".qer.irr", ".sub.irr"))
 
-############
+
 #df filtrada %>% left_join(select(dlaevis_assembly_uniprt, transcript_id,gene_names),by = join_by("qseqid" == "transcript_id")) %>%  View # hacer un left join con dlaevis para saber el nombre del gen
-############
 
 #query = RNA protein coding
 #target antisense transcript
 
-# Casos
+# Casos ####
 
 #Creacion de un DF con el inicio y fin de la prot
 
@@ -102,6 +97,13 @@ prot<- unique(prot)
 prot<- filter(prot, prot_start != 0)
 prot<- filter(prot, prot_end != 0)
 
+prot <- mutate(prot, prot_end - prot_start + 1) # + 1 para que coincida
+colnames(prot)[11] <- "CDS_length"
+prot <- left_join(prot, longitudes, by = join_by("qseqid" == "transcript_id"))
+prot <- mutate(prot, total_length - prot_end)
+colnames(prot)[13] <- "UTR_3"
+
+
 # Strings antisentido generalmente tienen NA en BlastP
 # juntar prot_coords (end y start), con las coordenadas de matches de query y en sentido positivo
 prot <- left_join(select(x, qseqid, sseqid, length, qstart, qend,sstart, send), prot, by = join_by("qseqid" == "transcript_id")) %>%  filter(prot_start < prot_end)
@@ -113,7 +115,7 @@ prot$caso <- case_when(
   prot$qstart >= prot$prot_end & prot$qend > prot$prot_end ~ "caso 6",
   prot$qstart < prot$prot_start & prot$qend <= prot$prot_start ~ "caso 5",
   prot$qstart >= prot$prot_start & prot$qend <= prot$prot_end ~ "caso 1",
-  prot$qstart <= prot$prot_start & prot$qend >= prot$prot_end & prot$length > (prot$prot_end - prot$prot_start) ~ "caso 2",
+  prot$qstart <= prot$prot_start & prot$qend >= prot$prot_end & prot$length > prot$CDS_length ~ "caso 2",
   prot$qstart <= prot$prot_start & prot$qend <= prot$prot_end ~ "caso 3",
   prot$qstart >= prot$prot_start & prot$qend >= prot$prot_end ~ "caso 4",
 )
@@ -126,11 +128,6 @@ prot$caso <- case_when(
 #caso 5 El match es en la zona 5UTR
 #caso 6 El match es en la zona 3UTR
 
-prot <- mutate(prot, prot_end - prot_start + 1) # + 1 para que coincida
-colnames(prot)[11] <- "CDS_length"
-prot <- left_join(prot, longitudes, by = join_by("qseqid" == "transcript_id"))
-prot <- mutate(prot, total_length - prot_end)
-colnames(prot)[13] <- "UTR_3"
 
 #largo del 5UTR = inicio -1
 select(prot, qseqid, total_length) %>% unique() %>% ggplot(aes(x = total_length)) + geom_histogram() + labs(x = "bp", title = "Total_length") + theme(plot.title = element_text(hjust = 0.5))
@@ -175,7 +172,7 @@ prot$CDSporcentaje <- case_when(
 
 prot$UTR3porcentaje <- case_when(
   prot$caso == "caso 1" ~ 0,
-  prot$caso == "caso 2" ~ ((prot$qend-prot$prot_end)*100/prot$UTR_3),
+  ####prot$caso == "caso 2" ~ ((prot$qend-prot$prot_end)*100/prot$UTR_3),
   prot$caso == "caso 3" ~ 0,
   prot$caso == "caso 4" ~ ((prot$qend-prot$prot_end)*100/prot$UTR_3),
   prot$caso == "caso 5" ~ 0,
@@ -233,10 +230,53 @@ prot$porcentaje_en3UTR <- case_when(
 #ampirr <- left_join(ampirr, ss_analysisIrr, by = join_by("sseqid" == "transcript_id"), suffix = c(".amp.target", ".irr.target"))
 #ampirr <- ampirr %>% mutate(diff_ratio_ampirr.target = ((plus_strand_1stReads.amp.target + plus_strand_1stReads.irr.target) - (minus_strand_1stReads.amp.target + minus_strand_1stReads.irr.target))/(total_reads.amp.target + total_reads.irr.target))
 
+#Modelado ####
 
-#basea mean y logfoldchange PARA MODELAJE TABLA NUEVA: qseqid,sseqid, basemean, log2foldChange y padj.
+## ampirr_basemean ####
+#basea mean y log2foldchange PARA MODELAJE TABLA NUEVA: qseqid,sseqid, basemean, log2foldChange.
 
-ampirr_basemean <- left_join(select(ampirr, qseqid, sseqid),select(results_full_amp_degs,transcript_id, log2FoldChange, padj, baseMean), by = join_by("qseqid" == "transcript_id")) %>% 
-  left_join(select(results_full_amp_degs,transcript_id, log2FoldChange, padj, baseMean), by =join_by("sseqid" == "transcript_id"), suffix = c(".qer.amp", ".sub.amp")) %>% 
-  left_join(select(results_full_irr_degs, transcript_id, log2FoldChange, padj, baseMean), by = join_by("qseqid" == "transcript_id")) %>% 
-  left_join(select(results_full_irr_degs, transcript_id, log2FoldChange, padj, baseMean), by = join_by("sseqid" == "transcript_id"), suffix = c(".qer.irr", ".sub.irr"))
+ampirr_basemean <- left_join(select(ampirr, qseqid, sseqid),select(results_full_amp_degs,transcript_id, log2FoldChange, baseMean), by = join_by("qseqid" == "transcript_id")) %>% 
+  left_join(select(results_full_amp_degs,transcript_id, log2FoldChange, baseMean), by =join_by("sseqid" == "transcript_id"), suffix = c(".qer.amp", ".sub.amp")) %>% 
+  left_join(select(results_full_irr_degs, transcript_id, log2FoldChange, baseMean), by = join_by("qseqid" == "transcript_id")) %>% 
+  left_join(select(results_full_irr_degs, transcript_id, log2FoldChange, baseMean), by = join_by("sseqid" == "transcript_id"), suffix = c(".qer.irr", ".sub.irr"))
+#Convirtiendo el df a log
+
+ampirr_basemean <- ampirr_basemean %>%
+  mutate(
+    baseMean.qer.amp = log2(baseMean.qer.amp),
+    baseMean.sub.amp = log2(baseMean.sub.amp),  
+    baseMean.sub.irr = log2(baseMean.sub.irr),  
+    baseMean.qer.irr = log2(baseMean.qer.irr)  
+  )
+
+
+#DF en escala log1p
+a <- prot %>% mutate(length =log1p(length), CDS_length = log1p(CDS_length), porcentaje_en3UTR = log1p(porcentaje_en3UTR), porcentaje_enCDS = log1p(porcentaje_enCDS), porcentaje_en5UTR = log1p(porcentaje_en5UTR))
+
+modelo <- lm(log2FoldChange.qer.amp ~ baseMean.qer.amp,data = ampirr_basemean) 
+lm(log2FoldChange.qer.amp ~ baseMean.qer.amp,data = ampirr_basemean) %>% ggplot(aes(x= log2FoldChange.qer.amp, y = baseMean.qer.amp)) + geom_point()
+plot(modelo)
+#modelo con lop1
+modelo <- lm(log2FoldChange.qer.amp ~ baseMean.qer.amp,data = filter(ampirr_basemean, !is.na(log2FoldChange.qer.amp)))
+
+#Experimentacion
+lm(log2FoldChange.sub.amp ~ baseMean.sub.amp, data = ampirr_basemean)
+modeloexp <- lm(log2FoldChange.qer.amp ~ (baseMean.qer.amp + baseMean.sub.amp)^2, data = filter(ampirr_basemean, !is.na(log2FoldChange.qer.amp),!is.na(log2FoldChange.sub.amp))) 
+
+
+#fin exp
+
+seq(0,13, by = 0.1)
+
+seq(0,13, by = 0.1)
+
+predict(modelo, seq(0,13, by = 0.1))
+new_values <- data.frame(baseMean.qer.amp = seq(0,13, by = 0.1))
+predict(modelo, new_values)
+new_values$logFoldChangepredicted <- predict(modelo, new_values)
+new_values %>%  ggplot(aes(x = baseMean.qer.amp, y = logFoldChangepredicted)) + geom_point()
+new_values %>%  ggplot() + geom_point(data = ampirr_basemean, aes(x = baseMean.qer.amp, y = log2FoldChange.qer.amp)) + geom_line(aes(x = baseMean.qer.amp, y = logFoldChangepredicted), data = new_values, col = "red", size = 2) + ylim(-5, 5)
+modelo2 <- lm(log2FoldChange.qer.amp ~ baseMean.qer.amp:log2FoldChange.sub.amp ,data = ampirr_basemean)
+predict(modelo2, ampirr_basemean)
+ampirr_basemean$predicho <- predict(modelo2, ampirr_basemean)
+ampirr_basemean %>% ggplot(aes(x = log2FoldChange.qer.amp, y = predicho)) + geom_point()
