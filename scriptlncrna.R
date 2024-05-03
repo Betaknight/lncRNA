@@ -7,7 +7,9 @@ library(tidyr)
 library(forcats)
 library(stringr)
 library(ggplot2)
-library(skimr)
+#ibrary(skimr)
+library(tidymodels)
+library(ranger)
 library(here)
 directorio <- here()
 dlaevis_assembly_uniprt <- read_delim(paste0(directorio,"/data/dlaevis_assembly_uniprt.csv"), 
@@ -38,7 +40,6 @@ ss_analysisAMP <- read_delim(paste0(directorio,"/data/ss_analysisAMP.dat"),
 ss_analysisIrr <- read_delim(paste0(directorio,"/data/ss_analysisIrr.dat"), 
                              delim = "\t", escape_double = FALSE, 
                              trim_ws = TRUE)
-View(ss_analysisIrr)
 
 colnames(ss_analysisAMP)[1] <- "transcript_id"
 colnames(ss_analysisIrr)[1] <- "transcript_id"
@@ -54,8 +55,8 @@ ampirr <- left_join(ampirr, ss_analysisIrr, by = join_by("sseqid" == "transcript
 ampirr <- ampirr %>% mutate(diff_ratio_ampirr.target = ((plus_strand_1stReads.amp.target + plus_strand_1stReads.irr.target) - (minus_strand_1stReads.amp.target + minus_strand_1stReads.irr.target))/(total_reads.amp.target + total_reads.irr.target))
 
 #length of mRNAs
-longitudes <- read_table(paste0(directorio,"/data/longitudes.txt"), 
-                         col_names = FALSE)
+
+longitudes <- read_table("data/longitudes.txt", col_names = FALSE)
 
 colnames(longitudes) <- c("transcript_id", "total_length")
 ampirr <- inner_join(ampirr, longitudes, by = join_by("qseqid" == "transcript_id"))
@@ -97,16 +98,16 @@ prot<- unique(prot)
 prot<- filter(prot, prot_start != 0)
 prot<- filter(prot, prot_end != 0)
 
-prot <- mutate(prot, prot_end - prot_start + 1) # + 1 para que coincida
-colnames(prot)[11] <- "CDS_length"
-prot <- left_join(prot, longitudes, by = join_by("qseqid" == "transcript_id"))
-prot <- mutate(prot, total_length - prot_end)
-colnames(prot)[13] <- "UTR_3"
-
-
 # Strings antisentido generalmente tienen NA en BlastP
 # juntar prot_coords (end y start), con las coordenadas de matches de query y en sentido positivo
 prot <- left_join(select(x, qseqid, sseqid, length, qstart, qend,sstart, send), prot, by = join_by("qseqid" == "transcript_id")) %>%  filter(prot_start < prot_end)
+
+prot <- mutate(prot, prot_end - prot_start + 1) # + 1 para que coincida
+colnames(prot)[10] <- "CDS_length"
+prot <- left_join(prot, longitudes, by = join_by(qseqid == transcript_id))
+prot <- mutate(prot, total_length - prot_end)
+colnames(prot)[12] <- "UTR_3"
+
 
 
 # la lógica del caso 3, incluye tambien a los del caso 5, y el 4 incluye tambien a los del caso 6, por eso el caso 5 y 6 van primero
@@ -172,7 +173,7 @@ prot$CDSporcentaje <- case_when(
 
 prot$UTR3porcentaje <- case_when(
   prot$caso == "caso 1" ~ 0,
-  ####prot$caso == "caso 2" ~ ((prot$qend-prot$prot_end)*100/prot$UTR_3),
+  ##prot$caso == "caso 2" ~ ((prot$qend-prot$prot_end)*100/prot$UTR_3),
   prot$caso == "caso 3" ~ 0,
   prot$caso == "caso 4" ~ ((prot$qend-prot$prot_end)*100/prot$UTR_3),
   prot$caso == "caso 5" ~ 0,
@@ -238,8 +239,7 @@ prot$porcentaje_en3UTR <- case_when(
 ampirr_basemean <- left_join(select(ampirr, qseqid, sseqid),select(results_full_amp_degs,transcript_id, log2FoldChange, baseMean), by = join_by("qseqid" == "transcript_id")) %>% 
   left_join(select(results_full_amp_degs,transcript_id, log2FoldChange, baseMean), by =join_by("sseqid" == "transcript_id"), suffix = c(".qer.amp", ".sub.amp")) %>% 
   left_join(select(results_full_irr_degs, transcript_id, log2FoldChange, baseMean), by = join_by("qseqid" == "transcript_id")) %>% 
-  left_join(select(results_full_irr_degs, transcript_id, log2FoldChange, baseMean), by = join_by("sseqid" == "transcript_id"), suffix = c(".qer.irr", ".sub.irr"))
-#Convirtiendo el df a log
+  left_join(select(results_full_irr_degs, transcript_id, log2FoldChange, baseMean), by = join_by("sseqid" == "transcript_id"), suffix = c(".qer.irr", ".sub.irr"))#Convirtiendo el df a log
 
 ampirr_basemean <- ampirr_basemean %>%
   mutate(
@@ -252,6 +252,7 @@ ampirr_basemean <- ampirr_basemean %>%
 
 #DF en escala log1p
 a <- prot %>% mutate(length =log1p(length), CDS_length = log1p(CDS_length), porcentaje_en3UTR = log1p(porcentaje_en3UTR), porcentaje_enCDS = log1p(porcentaje_enCDS), porcentaje_en5UTR = log1p(porcentaje_en5UTR))
+
 
 modelo <- lm(log2FoldChange.qer.amp ~ baseMean.qer.amp,data = ampirr_basemean) 
 lm(log2FoldChange.qer.amp ~ baseMean.qer.amp,data = ampirr_basemean) %>% ggplot(aes(x= log2FoldChange.qer.amp, y = baseMean.qer.amp)) + geom_point()
@@ -266,17 +267,88 @@ modeloexp <- lm(log2FoldChange.qer.amp ~ (baseMean.qer.amp + baseMean.sub.amp)^2
 
 #fin exp
 
-seq(0,13, by = 0.1)
+# seq(0,13, by = 0.1)
+# 
+# seq(0,13, by = 0.1)
+# 
+# predict(modelo, seq(0,13, by = 0.1))
+# new_values <- data.frame(baseMean.qer.amp = seq(0,13, by = 0.1))
+# predict(modelo, new_values)
+# new_values$logFoldChangepredicted <- predict(modelo, new_values)
+# new_values %>%  ggplot(aes(x = baseMean.qer.amp, y = logFoldChangepredicted)) + geom_point()
+# new_values %>%  ggplot() + geom_point(data = ampirr_basemean, aes(x = baseMean.qer.amp, y = log2FoldChange.qer.amp)) + geom_line(aes(x = baseMean.qer.amp, y = logFoldChangepredicted), data = new_values, col = "red", size = 2) + ylim(-5, 5)
+# modelo2 <- lm(log2FoldChange.qer.amp ~ baseMean.qer.amp:log2FoldChange.sub.amp ,data = ampirr_basemean)
+# predict(modelo2, ampirr_basemean)
+# ampirr_basemean$predicho <- predict(modelo2, ampirr_basemean)
+# ampirr_basemean %>% ggplot(aes(x = log2FoldChange.qer.amp, y = predicho)) + geom_point()
 
-seq(0,13, by = 0.1)
+b <- select(a, -c("qstart", "qend", "sstart", "send", "prot_start", "prot_end"))
 
-predict(modelo, seq(0,13, by = 0.1))
-new_values <- data.frame(baseMean.qer.amp = seq(0,13, by = 0.1))
-predict(modelo, new_values)
-new_values$logFoldChangepredicted <- predict(modelo, new_values)
-new_values %>%  ggplot(aes(x = baseMean.qer.amp, y = logFoldChangepredicted)) + geom_point()
-new_values %>%  ggplot() + geom_point(data = ampirr_basemean, aes(x = baseMean.qer.amp, y = log2FoldChange.qer.amp)) + geom_line(aes(x = baseMean.qer.amp, y = logFoldChangepredicted), data = new_values, col = "red", size = 2) + ylim(-5, 5)
-modelo2 <- lm(log2FoldChange.qer.amp ~ baseMean.qer.amp:log2FoldChange.sub.amp ,data = ampirr_basemean)
-predict(modelo2, ampirr_basemean)
-ampirr_basemean$predicho <- predict(modelo2, ampirr_basemean)
-ampirr_basemean %>% ggplot(aes(x = log2FoldChange.qer.amp, y = predicho)) + geom_point()
+b$presente5 <- case_when(
+  b$porcentaje_en5UTR > 0 ~ 1,
+  b$porcentaje_en5UTR == 0 ~ 0 
+)
+
+b$presente3 <- case_when(
+  b$porcentaje_en3UTR > 0 ~ 1,
+  b$porcentaje_en3UTR == 0 ~ 0 
+)
+
+b$presenteCDS <- case_when(
+  b$porcentaje_enCDS > 0 ~ 1,
+  b$porcentaje_enCDS == 0 ~ 0 
+)
+
+
+# modelos
+#esto funciona para regresin lineal?
+------
+#Filtrar los Nas
+#datos <- filter(ampirr_basemean, log2FoldChange.qer.amp != 0)
+
+#set.seed(117)
+#tabla de dboe entrada #
+#table()
+
+#Casos
+
+factor(b$presente5)
+factor(b$presente3)
+factor(b$presenteCDS)
+###
+  
+# entrenamiento <-initial_split(datos, prop = 0.7)
+# tree_model <- rand_forest(trees = 300, min_n = 5) %>% 
+#   set_engine("ranger", importance = "permutation", num.threads = 10) %>% 
+#   set_mode("regression") %>% translate()
+
+#training <- training(entrenamiento)
+
+#recipe <- recipe(training) %>%
+  # update_role(log2FoldChange.qer.amp, new_role = "outcome") %>%  
+  # update_role(c( "baseMean.qer.amp", "log2FoldChange.sub.amp", "baseMean.sub.amp" ), new_role =  "predictor") %>% 
+  # update_role(qseqid, new_role = "id") %>% 
+  # step_interact(~ .^2)
+
+#random_forest_wflow <- workflow() %>% add_model(tree_model) %>% add_recipe(recipe)
+#tree_fit <- fit(random_forest_wflow, training)
+
+#saveRDS(trees_fit, file = "tree_fit.RDS")
+
+#casos
+
+#set.seed(117)
+
+#entrenamiento2 <-initial_split(b, prop = 0.7)
+#tree_model2 <- rand_forest(trees = 300, min_n = 5) %>% 
+#  set_engine("ranger", importance = "permutation", num.threads = 10) %>% 
+#  set_mode("classification") %>% translate()
+
+#recipe2 <- recipe2(training) %>%
+#  update_role(caso, new_role = "outcome") %>%  
+#  update_role(c( "presente5", "presente3","presenteCDS"), new_role =  "predictor") %>% 
+#  update_role(qseqid, new_role = "id") %>% 
+#  step_interact(~ .^2)
+
+# random_forest_wflow2 <- workflow() %>% add_model(tree_model) %>% add_recipe(recipe)
+# tree_fit2 <- fit(random_forest_wflow2, training)

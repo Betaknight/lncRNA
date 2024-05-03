@@ -41,9 +41,11 @@ ggplot(data = ampirr, aes(x = diff_ratio_ampirr.qer)) + geom_histogram() +
 
     ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 
-    ## Warning: Removed 2182 rows containing non-finite values (`stat_bin()`).
+    ## Warning: Removed 2182 rows containing non-finite outside the scale range
+    ## (`stat_bin()`).
 
-    ## Warning: Removed 2 rows containing missing values (`geom_bar()`).
+    ## Warning: Removed 2 rows containing missing values or values outside the scale range
+    ## (`geom_bar()`).
 
 ![](gitlncRNA_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
 
@@ -54,8 +56,9 @@ ggplot(data = ampirr, aes(x = diff_ratio_ampirr.target)) + geom_histogram() +
 
     ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 
-    ## Warning: Removed 8510 rows containing non-finite values (`stat_bin()`).
-    ## Removed 2 rows containing missing values (`geom_bar()`).
+    ## Warning: Removed 8510 rows containing non-finite outside the scale range (`stat_bin()`).
+    ## Removed 2 rows containing missing values or values outside the scale range
+    ## (`geom_bar()`).
 
 ![](gitlncRNA_files/figure-gfm/unnamed-chunk-2-2.png)<!-- -->
 
@@ -106,7 +109,8 @@ labs(title = "mRNA diferential expressed when lncRNA not under Irradiation condi
      y = "log2Fold change mRNA")#, color = "red", linetype = "dashed" <- linea punteada)
 ```
 
-    ## Warning: Removed 8 rows containing missing values (`geom_point()`).
+    ## Warning: Removed 8 rows containing missing values or values outside the scale range
+    ## (`geom_point()`).
 
 ![](gitlncRNA_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
@@ -156,7 +160,8 @@ labs(title = "lncRNA diferential expressed",
      y = "log2Fold change mRNA")
 ```
 
-    ## Warning: Removed 2 rows containing missing values (`geom_point()`).
+    ## Warning: Removed 2 rows containing missing values or values outside the scale range
+    ## (`geom_point()`).
 
 ![](gitlncRNA_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
 
@@ -204,7 +209,8 @@ labs(title = "mRNA diferential expressed",
      y = "log2Fold change mRNA")
 ```
 
-    ## Warning: Removed 11 rows containing missing values (`geom_point()`).
+    ## Warning: Removed 11 rows containing missing values or values outside the scale range
+    ## (`geom_point()`).
 
 ![](gitlncRNA_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
@@ -246,7 +252,8 @@ labs(title = "lncRNA diferential expressed",
      y = "log2Fold change mRNA")
 ```
 
-    ## Warning: Removed 2 rows containing missing values (`geom_point()`).
+    ## Warning: Removed 2 rows containing missing values or values outside the scale range
+    ## (`geom_point()`).
 
 ![](gitlncRNA_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
@@ -278,6 +285,28 @@ prot %>% ggplot(aes(x = caso)) + geom_histogram(stat = "count") + labs(title = "
 ```
 
 ![](gitlncRNA_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+
+| skim_variable     |  NA | complete_rate | character.n_unique | numeric.mean | numeric.sd | numeric.p0 | numeric.p25 | numeric.p50 | numeric.p75 | numeric.p100 |
+|:------------------|----:|--------------:|-------------------:|-------------:|-----------:|-----------:|------------:|------------:|------------:|-------------:|
+| qseqid            |   0 |     1.0000000 |               4405 |           NA |         NA |         NA |          NA |          NA |          NA |           NA |
+| sseqid            |   0 |     1.0000000 |              13543 |           NA |         NA |         NA |          NA |          NA |          NA |           NA |
+| caso              |   0 |     1.0000000 |                  6 |           NA |         NA |         NA |          NA |          NA |          NA |           NA |
+| length            |   0 |     1.0000000 |                 NA |   297.831935 |  196.77553 |        201 |   215.00000 |         241 |         301 |    5187.0000 |
+| qstart            |   0 |     1.0000000 |                 NA |  2578.396250 | 1986.58686 |          1 |  1303.00000 |        2223 |        3484 |   20202.0000 |
+| qend              |   0 |     1.0000000 |                 NA |  2870.882593 | 1973.89691 |        190 |  1581.00000 |        2496 |        3789 |   20424.0000 |
+| sstart            |   0 |     1.0000000 |                 NA |   538.074830 |  669.93371 |        180 |   239.00000 |         302 |         491 |   10062.0000 |
+| send              |   0 |     1.0000000 |                 NA |   245.637073 |  619.15795 |          1 |     1.00000 |          28 |         165 |    9865.0000 |
+| prot_start        |   0 |     1.0000000 |                 NA |   465.817708 |  732.76113 |          1 |   101.00000 |         259 |         489 |   13456.0000 |
+| prot_end          |   0 |     1.0000000 |                 NA |  2312.752754 | 1643.52325 |        597 |  1227.00000 |        1794 |        2836 |   19243.0000 |
+| CDS_length        |   0 |     1.0000000 |                 NA |  1846.935046 | 1542.81623 |        596 |   878.00000 |        1328 |        2216 |   19190.0000 |
+| total_length      |   0 |     1.0000000 |                 NA |  3506.753824 | 2017.25632 |        597 |  2138.00000 |        2994 |        4482 |   20424.0000 |
+| UTR_3             |   0 |     1.0000000 |                 NA |  1194.001070 | 1023.40901 |          0 |   507.00000 |         896 |        1640 |   16848.0000 |
+| UTR5porcentaje    |   0 |     1.0000000 |                 NA |    10.996569 |   30.86922 |          0 |     0.00000 |           0 |           0 |     100.0000 |
+| CDSporcentaje     |   0 |     1.0000000 |                 NA |     5.656052 |   15.08320 |          0 |     0.00000 |           0 |           0 |     103.1348 |
+| UTR3porcentaje    |  14 |     0.9995166 |                 NA |    74.566491 |   43.00125 |          0 |    28.74332 |         100 |         100 |     100.0000 |
+| porcentaje_en5UTR |   0 |     1.0000000 |                 NA |    10.476978 |   30.02831 |          0 |     0.00000 |           0 |           0 |     100.0000 |
+| porcentaje_enCDS  |   0 |     1.0000000 |                 NA |    15.974258 |   35.19095 |          0 |     0.00000 |           0 |           0 |     100.0000 |
+| porcentaje_en3UTR |   0 |     1.0000000 |                 NA |    73.653105 |   43.19891 |          0 |    14.56954 |         100 |         100 |     100.0000 |
 
 # Código para histogramas
 
@@ -332,18 +361,23 @@ final de la proteína.
 
 Descripción del trabajo
 
-**DF de expresión diferencial**:
+**DF de expresión diferencial**: Son bases de datos creadas por Will,
+que contiene datos relacionados con la DEG.
 
 -results_full_amp_degs
 
 -results_full_irr_degs
 
-**DF resultados del blast con transcritos antisentido**:
+**DF resultados del blast con transcritos antisentido**: Este es el
+“SelfBlast” es decir que se tomaron los transcritos que codifican para
+almenos algún péptido y BLAST busco alineamientos con el transcriptoma
+(es decir con los 400mil transcritos que se obtuvieron con Trinity).
 
 -swissProt_self_blastAStranscripts
 
-**DF con anotaciones de BLASTX, prot ID, prot corrds, BLASTP, ontología,
-nombre de los genes, organismos en el que se encuentra, length, etc** :
+**DF con anotaciones:** Contiene todo tipo de anotaciones de BLASTX,
+prot ID, prot coords, BLASTP, ontología, nombre de los genes, organismos
+en el que se encuentra, length, etc
 
 -dlaevis_assembly_uniprt
 
@@ -393,3 +427,34 @@ filtró para tener únicamente los datos en el que van en sentido Se
 agregaron columnas con los datos de CDS_length y URT_3 Se hicieron las
 columnas de los casos, porcentaje de zona cubierto, y porcentaje del lnc
 en cada zona.
+
+### Perspectivas:
+
+Analizar los “casos” y ver si vale la pena reasignarlos.
+
+En el DF “prot” hay columnas que describen como se distribuye el
+alineamiento lncRNa/mRNA (pocentaje_en\*) específicamente dice qué
+porcentaje del alineamiento queda en cada una de las zonas. La suma de
+estas 3 columnas debe dar el 100%.
+
+Modelaje
+
+para un mRNA especifico, podemos observar que la mayoria de lncRNAs con
+los que se alinea, se alinea en la zona 3UTR. eg.TRINITY_DN82_c1_g1_i1
+se alinea con 20 diferentes lncRNAs, de esos alinieamientos, 17 son solo
+en la zona 3UTR
+
+------------------------------------------------------------------------
+
+Ampirr_baseamean contiende valores repetidos ya que algunos RNAs se
+alinean con diferentes peptidos skim_variable n_missing complete_rate
+mean sd p0 p25 p50 p75 1 log2FoldChange.qer.amp 2398 0.970 0.0738 1.27
+-22.1 -0.354 -0.0161 0.428 2 baseMean.qer.amp 0 1 -Inf NaN -Inf 2.64
+5.29 8.18 3 log2FoldChange.sub.amp 2340 0.971 -0.00641 0.970 -21.0
+-0.437 -0.0566 0.375 4 baseMean.sub.amp 0 1 -Inf NaN -Inf 1.06 3.10 5.19
+5 log2FoldChange.qer.irr 2692 0.966 0.0547 1.09 -23.3 -0.337 -0.00200
+0.388 6 baseMean.qer.irr 0 1 -Inf NaN -Inf 1.84 4.52 7.35 7
+log2FoldChange.sub.irr 3198 0.960 0.130 0.999 -7.70 -0.362 0.0912 0.556
+8 baseMean.sub.irr 0 1 -Inf NaN -Inf 0.0919 2.29 4.52 p100 hist 1 24.0
+▁▁▇▁▁ 2 18.8 ▂▇▇▂▁ 3 24.0 ▁▁▇▁▁ 4 18.8 ▃▇▃▁▁ 5 24.9 ▁▁▇▁▁ 6 18.9 ▃▇▇▁▁ 7
+23.0 ▁▇▁▁▁ 8 18.9 ▅▇▃▁▁
