@@ -83,7 +83,7 @@ We have a total of 223 entries. Of these entries, 113 rows contain NAs in the su
 
 ```{r}
 #Script para el skim
-#filter(mrna_deg, padj.qer.irr < 0.05) %>% skim_without_charts()
+filter(mrna_deg, padj.qer.irr < 0.05) %>% skim_without_charts()
 filter(mrna_deg, padj.qer.irr < 0.05) %>%
   ggplot(aes(x = log2FoldChange.sub.irr, y = log2FoldChange.qer.irr)) +
   geom_point() +

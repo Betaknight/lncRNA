@@ -98,7 +98,44 @@ and 8 NAs in the log2FoldChange subject column.
 
 ``` r
 #Script para el skim
-#filter(mrna_deg, padj.qer.irr < 0.05) %>% skim_without_charts()
+filter(mrna_deg, padj.qer.irr < 0.05) %>% skim_without_charts()
+```
+
+|                                                  |            |
+|:-------------------------------------------------|:-----------|
+| Name                                             | Piped data |
+| Number of rows                                   | 223        |
+| Number of columns                                | 10         |
+| \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_   |            |
+| Column type frequency:                           |            |
+| character                                        | 2          |
+| numeric                                          | 8          |
+| \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ |            |
+| Group variables                                  | None       |
+
+Data summary
+
+**Variable type: character**
+
+| skim_variable | n_missing | complete_rate | min | max | empty | n_unique | whitespace |
+|:--------------|----------:|--------------:|----:|----:|------:|---------:|-----------:|
+| qseqid        |         0 |             1 |  23 |  25 |     0 |       25 |          0 |
+| sseqid        |         0 |             1 |  22 |  25 |     0 |      217 |          0 |
+
+**Variable type: numeric**
+
+| skim_variable          | n_missing | complete_rate |  mean |   sd |     p0 |   p25 |   p50 |  p75 | p100 |
+|:-----------------------|----------:|--------------:|------:|-----:|-------:|------:|------:|-----:|-----:|
+| log2FoldChange.qer.amp |         1 |          1.00 | -0.01 | 1.11 |  -2.92 | -0.43 |  0.03 | 0.07 | 8.10 |
+| padj.qer.amp           |         4 |          0.98 |  0.87 | 0.17 |   0.14 |  0.82 |  0.92 | 0.98 | 1.00 |
+| log2FoldChange.sub.amp |         8 |          0.96 | -0.16 | 0.93 |  -4.50 | -0.56 | -0.08 | 0.30 | 4.16 |
+| padj.sub.amp           |        94 |          0.58 |  0.87 | 0.16 |   0.17 |  0.84 |  0.93 | 0.97 | 1.00 |
+| log2FoldChange.qer.irr |         0 |          1.00 | -1.22 | 4.51 | -23.26 | -5.54 | -1.11 | 1.08 | 7.82 |
+| padj.qer.irr           |         0 |          1.00 |  0.02 | 0.02 |   0.00 |  0.00 |  0.02 | 0.04 | 0.04 |
+| log2FoldChange.sub.irr |         8 |          0.96 |  0.05 | 0.98 |  -3.49 | -0.47 |  0.11 | 0.56 | 3.17 |
+| padj.sub.irr           |       113 |          0.49 |  0.99 | 0.04 |   0.55 |  1.00 |  1.00 | 1.00 | 1.00 |
+
+``` r
 filter(mrna_deg, padj.qer.irr < 0.05) %>%
   ggplot(aes(x = log2FoldChange.sub.irr, y = log2FoldChange.qer.irr)) +
   geom_point() +
